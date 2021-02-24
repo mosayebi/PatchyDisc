@@ -1,0 +1,21 @@
+{
+    "types": 2,
+    "particle_numbers" : [
+        {"type": 0, "N":900},
+        {"type": 1, "N":100}
+    ],
+    "box_size": 60,
+    "patches": [
+        {"type": 0, "nPatches": 3, "angles" : [0.0, 120.0, 240.0]},
+        {"type": 1, "nPatches": 2, "angles" : [0.0, 180.0]}
+    ],
+    "pair_coeff" : [
+        {"type1":0, "type2":0, "epsilon":10.0, "delta":1.0, "sigma":1.0, "sigma_p": 0.3, "rcut": 2.5},
+        {"type1":0, "type2":1, "epsilon":5.0, "delta":1.0, "sigma":1.0, "sigma_p": 0.3, "rcut": 2.5},
+        {"type1":1, "type2":0, "epsilon":5.0, "delta":1.0, "sigma":1.0, "sigma_p": 0.3, "rcut": 2.5},
+        {"type1":1, "type2":1, "epsilon":10.0, "delta":1.0, "sigma":1.0, "sigma_p": 0.3, "rcut": 2.5}
+    ],
+    "trajectory": "trajectory.xyz",
+    "init_conf": "init.xyz",
+    "last_conf": "last_conf.xyz"
+}

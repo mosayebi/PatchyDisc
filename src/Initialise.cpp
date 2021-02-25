@@ -241,7 +241,7 @@ bool Initialise::checkOverlap(Particle& particle, std::vector<Particle>& particl
                     normSqd += sep[k]*sep[k];
 
                 // Overlap if normSqd is less than particle diameter (box is scaled in diameter units).
-                if (normSqd < 1.2) return true;
+                if (normSqd < 1.1) return true; //TODO: use sigma_ij*sigma_ij instead
             }
         }
     }

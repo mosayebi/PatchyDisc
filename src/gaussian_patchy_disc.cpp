@@ -87,9 +87,9 @@ int main(int argc, char** argv){
 
     // Simulation parameters.
     unsigned int dimension = 2;                     // dimension of simulation box
-    double interactionRange = 0.1;                  // interaction range. #diameter of patch (in units of particle diameter)
-    double interactionEnergy = 10.0;                 // pair interaction energy scale (in units of kBT)
-    unsigned int maxInteractions = 3;              // maximum number of interactions per particle
+    double interactionRange = 1.0;                  // interaction range. #diameter of patch (in units of particle diameter)
+    double interactionEnergy = 1.0;                 // pair interaction energy scale (in units of kBT)
+    unsigned int maxInteractions = 36;              // maximum number of interactions per particle
 
 	/**
 	 * Load the input file and Initialise
@@ -122,8 +122,6 @@ int main(int argc, char** argv){
         for (unsigned int j=0;j<top.nPatches[t1];j++){
             dummy = inp["patches"][i]["angles"][j];
             top.patchAngles[t1].push_back(M_PI * (dummy / 180.0));
-            top.cosPatchAngles[t1].push_back(cos(M_PI * (dummy / 180.0)));
-            top.sinPatchAngles[t1].push_back(sin(M_PI * (dummy / 180.0)));
         }
     }
 
@@ -139,11 +137,10 @@ int main(int argc, char** argv){
             top.sigma[t1][t2] = inp["pair_coeff"][counter]["sigma"];
             top.sigma_p[t1][t2] = inp["pair_coeff"][counter]["sigma_p"];
             top.rcut[t1][t2] = inp["pair_coeff"][counter]["rcut"];
-            top.rcut_sq[t1][t2] = top.rcut[t1][t2]*top.rcut[t1][t2];
             counter += 1;
 
-            //if (interactionEnergy<top.epsilon[t1][t2]) interactionEnergy=top.epsilon[t1][t2];
-            //if (interactionRange<top.rcut[t1][t2]) interactionRange=top.rcut[t1][t2];
+            if (interactionEnergy<top.epsilon[t1][t2]) interactionEnergy=top.epsilon[t1][t2];
+            if (interactionRange<top.rcut[t1][t2]) interactionRange=top.rcut[t1][t2];
         }
     }
     //interactionRange = 0.1;
@@ -179,7 +176,7 @@ int main(int argc, char** argv){
 
     // Initialise cell list.
     cells.setDimension(dimension);
-    cells.initialise(box.boxSize, 1 + 0.5*interactionRange);
+    cells.initialise(box.boxSize, 1 + interactionRange);
 
     // Initialise the patchy disc model.
     GaussianPatchyDisc patchyDisc(box, particles, cells, top, maxInteractions, interactionEnergy, interactionRange);
@@ -243,7 +240,7 @@ int main(int argc, char** argv){
     for (unsigned int i=0;i<100;i++)
     {
         // Increment simulation by 1000 Monte Carlo Sweeps.
-        vmmc += 1000*nParticles;
+        vmmc += 50*nParticles;
 
         // Append particle coordinates to an xyz trajectory.
         if (i == 0) io.appendXyzTrajectory(dimension, particles, true);

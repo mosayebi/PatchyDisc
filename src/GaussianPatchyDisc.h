@@ -106,6 +106,8 @@ private:
     std::vector<std::vector<double>> rcut_sq;
     std::vector<std::vector<double>> lj_shift;
     std::vector<std::vector<double>> twoSigmapSq;
+    std::vector<std::vector<double>> sigmaSq;
+
 };
 
 

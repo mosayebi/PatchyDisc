@@ -13,7 +13,7 @@ project(
 ###############################################################################
 
 # these instructions search the directory tree when cmake is
-# invoked and put all files that match the pattern in the variables 
+# invoked and put all files that match the pattern in the variables
 # `sources` and `data`
 file(GLOB_RECURSE sources      src/*.cpp src/*.h)
 #file(GLOB_RECURSE sources_test src/test/*.cpp)

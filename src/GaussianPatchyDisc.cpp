@@ -66,6 +66,8 @@ GaussianPatchyDisc::GaussianPatchyDisc(
     rcut_sq.resize(top.nTypes, std::vector<double>(top.nTypes));
     lj_shift.resize(top.nTypes, std::vector<double>(top.nTypes));
     twoSigmapSq.resize(top.nTypes, std::vector<double>(top.nTypes));
+    twoSigmapSq.resize(top.nTypes, std::vector<double>(top.nTypes));
+    sigmaSq.resize(top.nTypes, std::vector<double>(top.nTypes));
     for (unsigned int i=0;i<top.nTypes;i++)
     {
         for (unsigned int j=0;j<top.nTypes;j++)
@@ -74,6 +76,7 @@ GaussianPatchyDisc::GaussianPatchyDisc(
             lj_shift[i][j] = pow(top.sigma[i][j]/top.rcut[i][j], 12) - pow(top.sigma[i][j]/top.rcut[i][j], 6);
             lj_shift[i][j] *= -4 * top.epsilon[i][j];
             twoSigmapSq[i][j] = 2 * top.sigma_p[i][j] * top.sigma_p[i][j];
+            sigmaSq[i][j] = top.sigma[i][j] * top.sigma[i][j];
          }
     }
 // std::cout << "init done!" << std::endl;
@@ -102,16 +105,16 @@ double GaussianPatchyDisc::computePairEnergy(unsigned int particle1, const doubl
 
     // Particles interact.
     double energyLJ;
-    if (normSqd < top.sigma[t1][t2])
+    if (normSqd < sigmaSq[t1][t2])
     {
-        double r2Inv = top.sigma[t1][t2] / normSqd;
+        double r2Inv = sigmaSq[t1][t2] / normSqd;
         double r6Inv = r2Inv*r2Inv*r2Inv;
         energyLJ = 4.0*top.epsilon[t1][t2]*((r6Inv*r6Inv) - r6Inv) + lj_shift[t1][t2];
         return energyLJ;
     }
     else if (normSqd < rcut_sq[t1][t2])
     {
-        double r2Inv = top.sigma[t1][t2] / normSqd;
+        double r2Inv = sigmaSq[t1][t2] / normSqd;
         double r6Inv = r2Inv*r2Inv*r2Inv;
         energyLJ = 4.0*top.epsilon[t1][t2]*((r6Inv*r6Inv) - r6Inv) + lj_shift[t1][t2];
     }
@@ -128,8 +131,10 @@ double GaussianPatchyDisc::computePairEnergy(unsigned int particle1, const doubl
 
     for (unsigned int i=0;i<top.nPatches[t1];i++)
     {
-        double p1Angle = std::atan2(orientation1[1], orientation1[0]);
+        double p1Angle = atan2(orientation1[1], orientation1[0]);
+        //std::cout<< "orientation1 angle " << p1Angle/M_PI*180 << std::endl;
         p1Angle += top.patchAngles[t1][i];
+        //std::cout << "1 (patch "<<i<<"): o1=("<<orientation1[0]<<","<<orientation1[1]<<"),   angle1="<<p1Angle/M_PI*180<<std::endl;
 
         // std::vector<double> coord1(2);
         // coord1[0] = position1[0] + 0.5*(orientation1[0]*cosPatchAngles[t1][i] - orientation1[1]*sinPatchAngles[t1][i]);
@@ -140,11 +145,13 @@ double GaussianPatchyDisc::computePairEnergy(unsigned int particle1, const doubl
         for (unsigned int j=0;j<top.nPatches[t2];j++)
         {
             double p2Angle = atan2(orientation2[1], orientation2[0]);
+            //std::cout<< "orientation2 angle " << p1Angle/M_PI*180 << std::endl;
             p2Angle += top.patchAngles[t2][j];
+            //std::cout << "2 (patch "<<j<<"): o2=(" <<orientation2[0]<<","<<orientation2[1]<<"),   angle2="<<p2Angle/M_PI*180<<std::endl;
             p1Angle = p1Angle - r12Angle;
             p2Angle = p2Angle - r21Angle;
-            while (p1Angle > M_PI) p1Angle -= M_PI;
-            while (p2Angle < -M_PI) p2Angle += M_PI;
+            while (p1Angle > M_PI) p1Angle -= 2*M_PI;
+            while (p2Angle < -M_PI) p2Angle += 2*M_PI;
             //std::cout << p1Angle << std::endl;
 
             modulation = (p1Angle*p1Angle)/twoSigmapSq[t1][t2] + (p2Angle*p2Angle)/twoSigmapSq[t1][t2];

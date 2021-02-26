@@ -23,6 +23,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
+#include <csignal>
+
 
 #include "System.h"
 #include "VMMC.h"
@@ -150,6 +152,10 @@ int main(int argc, char** argv){
 
     unsigned int output_every = inp["output_every"];
     unsigned int sweeps = inp["sweeps"];
+    std::string last_conf = "last_conf.xyz";
+    //if inp.contains("last_conf") last_conf = inp["last_conf"];
+    std::string trajectory = "trajectory.xyz";
+    //if inp.contains("trajectory") trajectory = inp["trajectory"];
 
     //exit(1);
 
@@ -193,6 +199,13 @@ int main(int argc, char** argv){
     // Generate a random particle configuration.
     //std::cout << top.Ni[0] <<", "<< top.Ni[1] << std::endl;
     initialise.random(top, particles, cells, box, rng, false);
+
+    // double p1[2] = {1., 1.};
+    // double p2[2] = {2.4, 1.};
+    // double o1[2] = {1., 0.};
+    // double o2[2] = {1., 0.};
+    // std::cout << patchyDisc.computePairEnergy(0, p1, o1, 1, p2, o2) << std::endl;
+
 
     // Initialise data structures needed by the VMMC class.
     double coordinates[dimension*nParticles];
@@ -238,20 +251,23 @@ int main(int argc, char** argv){
     vmmc::VMMC vmmc(nParticles, dimension, coordinates, orientations,
         0.15, 0.2, 0.5, 0.5, maxInteractions, &boxSizeVec[0], isIsotropic, false, callbacks);
 
+    // save init conf and print init energy (is not needed if restarting)
+    long long int starting_step = 0;
+    long long int curr_step;
+    printf("sweeps = %10lld, energy = %5.4f\n", starting_step, patchyDisc.getEnergy());
+    io.appendXyzTrajectory(trajectory, starting_step, box, particles, true);
     // Execute the simulation.
-    printf("sweeps = %10d, energy = %5.4f\n", 0, patchyDisc.getEnergy());
-    for (unsigned int i=0;i<sweeps;i++)
+    for(curr_step = starting_step; curr_step < sweeps && !stop; curr_step++)
     {
-        // Increment simulation by 1000 Monte Carlo Sweeps.
-        vmmc += output_every*nParticles;
-
-        // Append particle coordinates to an xyz trajectory.
-        if (i == 0) io.appendXyzTrajectory(dimension, particles, true);
-        else io.appendXyzTrajectory(dimension, particles, false);
-        // Report.
-        printf("sweeps = %10d, energy = %5.4f\n", ((i+1)*output_every), patchyDisc.getEnergy());
+        vmmc += nParticles;
+        if(curr_step > 0 && (curr_step % (output_every)) == 0)
+        {
+            io.appendXyzTrajectory(trajectory, curr_step, box, particles, false);
+            printf("sweeps = %10lld, energy = %5.4f\n", curr_step, patchyDisc.getEnergy());
+        }
     }
-
+    printf("Writing the last conf to `%s`.", last_conf.c_str());
+    io.appendXyzTrajectory(last_conf, curr_step, box, particles, true);
     std::cout << "\nComplete!\n";
 
     // We're done!

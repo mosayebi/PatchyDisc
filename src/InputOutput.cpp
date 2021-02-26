@@ -114,19 +114,23 @@ void InputOutput::saveConfiguration(std::string fileName, Box& box,
     fclose(pFile);
 }
 
-void InputOutput::appendXyzTrajectory(unsigned int dimension, const std::vector<Particle>& particles, bool clearFile)
+void InputOutput::appendXyzTrajectory(std::string filename, long long int step, Box& box, const std::vector<Particle>& particles, bool clearFile)
 {
     FILE* pFile;
 
     // Wipe existing trajectory file.
     if (clearFile)
     {
-        pFile = fopen("trajectory.xyz", "w");
+        pFile = fopen(filename.c_str(), "w");
         fclose(pFile);
     }
 
-    pFile = fopen("trajectory.xyz", "a");
-    fprintf(pFile, "%lu\n\n", particles.size());
+    pFile = fopen(filename.c_str(), "a");
+    fprintf(pFile, "%lu\n", particles.size());
+    // Write step, and box size in the comment line.
+    fprintf(pFile, "%lld    %5.4f %5.4f", step, box.boxSize[0], box.boxSize[1]);
+    if (box.dimension == 3) fprintf(pFile, " %5.4f", box.boxSize[2]);
+    fprintf(pFile, "\n");
 
     for (unsigned int i=0;i<particles.size();i++)
     {
@@ -134,7 +138,7 @@ void InputOutput::appendXyzTrajectory(unsigned int dimension, const std::vector<
         fprintf(pFile, "%3d %5.4f %5.4f %5.4f\n",
             particles[i].type, particles[i].position[0], particles[i].position[1], (dimension == 3) ? particles[i].position[2] : 0);
 #else
-        if (dimension == 2) 
+        if (box.dimension == 2)
         {
             fprintf(pFile, "%3d %5.4f %5.4f %5.4f %5.4f\n",
             particles[i].type, particles[i].position[0], particles[i].position[1], particles[i].orientation[0], particles[i].orientation[1]);

@@ -130,8 +130,21 @@ void InputOutput::appendXyzTrajectory(unsigned int dimension, const std::vector<
 
     for (unsigned int i=0;i<particles.size();i++)
     {
+#ifdef ISOTROPIC
         fprintf(pFile, "%3d %5.4f %5.4f %5.4f\n",
             particles[i].type, particles[i].position[0], particles[i].position[1], (dimension == 3) ? particles[i].position[2] : 0);
+#else
+        if (dimension == 2) 
+        {
+            fprintf(pFile, "%3d %5.4f %5.4f %5.4f %5.4f\n",
+            particles[i].type, particles[i].position[0], particles[i].position[1], particles[i].orientation[0], particles[i].orientation[1]);
+        }
+        else
+        {
+            fprintf(pFile, "%3d %5.4f %5.4f %5.4f %5.4f %5.4f %5.4f\n",
+            particles[i].type, particles[i].position[0], particles[i].position[1], particles[i].position[2], particles[i].orientation[0], particles[i].orientation[1], particles[i].orientation[2]);
+        }
+#endif
     }
 
     fclose(pFile);
@@ -162,9 +175,14 @@ void InputOutput::vmdScript(const std::vector<double>& boxSize)
     // Set sensible atom radius.
     fprintf(pFile, "set sel [atomselect top \"name X\"]\n");
     fprintf(pFile, "atomselect0 set radius 0.5\n");
-
     // Set default particle to blue.
-    fprintf(pFile, "color Name X blue\n");
+    fprintf(pFile, "color Name X cyan\n");
+
+    // Set sensible atom radius.
+    fprintf(pFile, "set sel [atomselect top \"name H\"]\n");
+    fprintf(pFile, "atomselect1 set radius 0.5\n");
+    // Set default particle to blue.
+    fprintf(pFile, "color Name H orange\n");
 
     // Turn off depth cue.
     fprintf(pFile, "display depthcue off\n");

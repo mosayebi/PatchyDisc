@@ -148,6 +148,9 @@ int main(int argc, char** argv){
     double density = nParticles * (M_PI/4) / (box_size*box_size);                           // particle number density density
     printf("density = %5.4f\n", density);
 
+    unsigned int output_every = inp["output_every"];
+    unsigned int sweeps = inp["sweeps"];
+
     //exit(1);
 
     //double baseLength;                              // base length of simulation box
@@ -176,7 +179,7 @@ int main(int argc, char** argv){
 
     // Initialise cell list.
     cells.setDimension(dimension);
-    cells.initialise(box.boxSize, 1 + interactionRange);
+    cells.initialise(box.boxSize, interactionRange);
 
     // Initialise the patchy disc model.
     GaussianPatchyDisc patchyDisc(box, particles, cells, top, maxInteractions, interactionEnergy, interactionRange);
@@ -237,16 +240,16 @@ int main(int argc, char** argv){
 
     // Execute the simulation.
     printf("sweeps = %10d, energy = %5.4f\n", 0, patchyDisc.getEnergy());
-    for (unsigned int i=0;i<100;i++)
+    for (unsigned int i=0;i<sweeps;i++)
     {
         // Increment simulation by 1000 Monte Carlo Sweeps.
-        vmmc += 50*nParticles;
+        vmmc += output_every*nParticles;
 
         // Append particle coordinates to an xyz trajectory.
         if (i == 0) io.appendXyzTrajectory(dimension, particles, true);
         else io.appendXyzTrajectory(dimension, particles, false);
         // Report.
-        printf("sweeps = %10d, energy = %5.4f\n", ((i+1)*100), patchyDisc.getEnergy());
+        printf("sweeps = %10d, energy = %5.4f\n", ((i+1)*output_every), patchyDisc.getEnergy());
     }
 
     std::cout << "\nComplete!\n";

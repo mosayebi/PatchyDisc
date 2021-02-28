@@ -255,19 +255,19 @@ int main(int argc, char** argv){
     long long int starting_step = 0;
     long long int curr_step;
     printf("sweeps = %10lld, energy = %5.4f\n", starting_step, patchyDisc.getEnergy());
-    io.appendXyzTrajectory(trajectory, starting_step, box, particles, true);
+    io.appendXyzTrajectory(trajectory, starting_step, box, particles, true, true);
     // Execute the simulation.
     for(curr_step = starting_step; curr_step < sweeps && !stop; curr_step++)
     {
         vmmc += nParticles;
         if(curr_step > 0 && (curr_step % (output_every)) == 0)
         {
-            io.appendXyzTrajectory(trajectory, curr_step, box, particles, false);
+            io.appendXyzTrajectory(trajectory, curr_step, box, particles, false, true);
             printf("sweeps = %10lld, energy = %5.4f\n", curr_step, patchyDisc.getEnergy());
         }
     }
     printf("Writing the last conf to `%s`.", last_conf.c_str());
-    io.appendXyzTrajectory(last_conf, curr_step, box, particles, true);
+    io.appendXyzTrajectory(last_conf, curr_step, box, particles, true, true);
     std::cout << "\nComplete!\n";
 
     // We're done!

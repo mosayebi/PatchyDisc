@@ -79,7 +79,7 @@ public:
         \param clearFile
             Whether to clear the trajectory file before writing.
      */
-    void appendXyzTrajectory(std::string, long long int, Box&, const std::vector<Particle>&, bool);
+    void appendXyzTrajectory(std::string, long long int, Box&, const std::vector<Particle>&, bool, bool);
 
     //! Create a VMD TcL script to set the particle view and draw a bounding box.
     /*! \param boxSize

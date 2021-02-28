@@ -114,8 +114,9 @@ void InputOutput::saveConfiguration(std::string fileName, Box& box,
     fclose(pFile);
 }
 
-void InputOutput::appendXyzTrajectory(std::string filename, long long int step, Box& box, const std::vector<Particle>& particles, bool clearFile)
+void InputOutput::appendXyzTrajectory(std::string filename, long long int step, Box& box, const std::vector<Particle>& particles, bool clearFile, bool writeQuaternion)
 {
+    // if writeQuaternion=true, the last two components of the quaternion (i.e. sin(theta/2) and cos(theta/2) are written in the oreintation fields) 
     FILE* pFile;
 
     // Wipe existing trajectory file.
@@ -140,8 +141,17 @@ void InputOutput::appendXyzTrajectory(std::string filename, long long int step, 
 #else
         if (box.dimension == 2)
         {
-            fprintf(pFile, "%3d %5.4f %5.4f %5.4f %5.4f\n",
-            particles[i].type, particles[i].position[0], particles[i].position[1], particles[i].orientation[0], particles[i].orientation[1]);
+            if (writeQuaternion)
+            {
+                double angle = atan2(particles[i].orientation[1], particles[i].orientation[0]);
+                fprintf(pFile, "%3d %5.4f %5.4f %5.4f %5.4f\n",
+                particles[i].type, particles[i].position[0], particles[i].position[1], sin(angle/2), cos(angle/2));
+            }
+            else
+            {
+                fprintf(pFile, "%3d %5.4f %5.4f %5.4f %5.4f\n",
+                particles[i].type, particles[i].position[0], particles[i].position[1], particles[i].orientation[0], particles[i].orientation[1]);
+            }
         }
         else
         {

@@ -110,7 +110,7 @@ def _geenrate_stl(filename, sigma=1, angles=[0,120,240]):
             result = r0_copy
         else:
             result = result.union(r0_copy)
-    cq.exporters.export(r, filename)
+    cq.exporters.export(result, filename)
 
 
 def generate_monomer_stl_file(input_json):

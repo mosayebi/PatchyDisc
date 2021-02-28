@@ -26,7 +26,7 @@
 class  Box;
 class  CellList;
 struct Particle;
-struct Top;
+class  Top;
 class  MersenneTwister;
 
 //! Class for the initialisation of particle configurations.

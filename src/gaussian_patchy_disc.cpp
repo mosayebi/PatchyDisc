@@ -24,6 +24,8 @@
 #include <cstdlib>
 #include <iostream>
 #include <csignal>
+#include <random>
+
 
 
 #include "System.h"
@@ -50,9 +52,9 @@ json ReadJsonFromFile(std::string file_name) {
     } catch (...) {
         std::cerr << "Unknown error" << std::endl;
     }
+    std::cerr << "[ERROR] Failed to parse json!" << std::endl;
     return {};
 }
-
 
 int stop = 0;
 void gbl_terminate(int arg) {
@@ -101,65 +103,89 @@ int main(int argc, char** argv){
 
     //std::cout << std::setw(4) << inp << std::endl;
 
-    unsigned int nTypes=inp["types"];
-    //init topology struct
-    Top top(nTypes);
 
+    // Initialisation
     unsigned int nParticles = 0;
-    unsigned int t1, t2, counter;
+    unsigned int nTypes = 1;
+    Top top;
+    double box_size;
 
-    //init Ni
-    for (unsigned int i=0;i<nTypes;i++){
-        t1 = inp["particle_numbers"][i]["type"];
-        top.Ni[t1] = inp["particle_numbers"][i]["N"];
-        nParticles += top.Ni[inp["particle_numbers"][i]["type"]];
+    unsigned int seed = std::random_device{}();
+    if (inp["initialisation"].contains("seed")) seed = inp["initialisation"]["seed"];
+    // figure out initialisation mode
+    std::string init_mode = inp["initialisation"]["mode"];
+    if (inp["initialisation"].contains(init_mode))
+    {
+        if (init_mode == "random_conf")
+        {
+            nTypes =inp["initialisation"]["random_conf"]["types"];
+            top.setSize(nTypes);
+            //init Ni
+            for (unsigned int i=0;i<nTypes;i++){
+                unsigned int t1 = inp["initialisation"]["random_conf"]["particle_numbers"][i]["type"];
+                top.Ni[t1] = inp["initialisation"]["random_conf"]["particle_numbers"][i]["N"];
+                nParticles += top.Ni[t1];
+            }
+
+            box_size = inp["initialisation"]["random_conf"]["box_size"];
+            // double density = nParticles * (M_PI/4) / (box_size*box_size);   // area fraction assuming all sigma=1.
+            printf("# Number density is %5.4f\n", nParticles/box_size/box_size );
+        }
+        else if (init_mode == "init_conf")
+        {
+            //TODO
+        }
+    }
+    else
+    {
+        std::cerr << "[ERROR] Initialisation mode is not defined!\n";
+        exit(EXIT_FAILURE);
     }
 
-    //init patches
-    double dummy;
+    // Initialise topology
+    // patches
+    unsigned int t1, t2;
     for (unsigned int i=0;i<nTypes;i++){
-        t1 = inp["patches"][i]["type"];
-        top.nPatches[t1] = inp["patches"][i]["nPatches"];
+        t1 = inp["topology"]["patches"][i]["type"];
+        top.nPatches[t1] = inp["topology"]["patches"][i]["nPatches"];
         //std::cout << inp["patches"][i]["angles"] << std::endl;
         for (unsigned int j=0;j<top.nPatches[t1];j++){
-            dummy = inp["patches"][i]["angles"][j];
+            double dummy = inp["topology"]["patches"][i]["angles"][j];
             top.patchAngles[t1].push_back(M_PI * (dummy / 180.0));
         }
     }
-
     //init pair_coeff
-    counter = 0;
+    unsigned int counter = 0;
     for (unsigned int i=0;i<nTypes;i++){
         for (unsigned int j=0;j<nTypes;j++){
-            t1 = inp["pair_coeff"][counter]["type1"];
-            t2 = inp["pair_coeff"][counter]["type2"];
-            //std::cout << t1 << t2 << std::endl;
-            top.epsilon[t1][t2] = inp["pair_coeff"][counter]["epsilon"];
-            top.delta[t1][t2] = inp["pair_coeff"][counter]["delta"];
-            top.sigma[t1][t2] = inp["pair_coeff"][counter]["sigma"];
-            top.sigma_p[t1][t2] = inp["pair_coeff"][counter]["sigma_p"];
-            top.rcut[t1][t2] = inp["pair_coeff"][counter]["rcut"];
+            t1 = inp["topology"]["pair_coeff"][counter]["type1"];
+            t2 = inp["topology"]["pair_coeff"][counter]["type2"];
+            top.epsilon[t1][t2] = inp["topology"]["pair_coeff"][counter]["epsilon"];
+            top.delta[t1][t2] = inp["topology"]["pair_coeff"][counter]["delta"];
+            top.sigma[t1][t2] = inp["topology"]["pair_coeff"][counter]["sigma"];
+            top.sigma_p[t1][t2] = inp["topology"]["pair_coeff"][counter]["sigma_p"];
+            top.rcut[t1][t2] = inp["topology"]["pair_coeff"][counter]["rcut"];
             counter += 1;
 
             if (interactionEnergy<top.epsilon[t1][t2]) interactionEnergy=top.epsilon[t1][t2];
             if (interactionRange<top.rcut[t1][t2]) interactionRange=top.rcut[t1][t2];
         }
     }
-    //interactionRange = 0.1;
-    double box_size = inp["box_size"];
-    double density = nParticles * (M_PI/4) / (box_size*box_size);                           // particle number density density
-    printf("density = %5.4f\n", density);
 
-    unsigned int output_every = inp["output_every"];
-    unsigned int sweeps = inp["sweeps"];
+
+    unsigned int output_every = 1000;
+    if (inp["IO"].contains("output_every")) output_every = inp["IO"]["output_every"];
+    unsigned int sweeps = inp["IO"]["sweeps"];
     std::string last_conf = "last_conf.xyz";
-    //if inp.contains("last_conf") last_conf = inp["last_conf"];
+    if (inp["IO"].contains("last_conf")) last_conf = inp["IO"]["last_conf"];
     std::string trajectory = "trajectory.xyz";
-    //if inp.contains("trajectory") trajectory = inp["trajectory"];
+    if (inp["IO"].contains("trajectory")) trajectory = inp["IO"]["trajectory"];
+
+
+
 
     //exit(1);
 
-    //double baseLength;                              // base length of simulation box
 
     // Data structures.
     std::vector<Particle> particles(nParticles);    // particle container
@@ -192,6 +218,8 @@ int main(int argc, char** argv){
 
     // Initialise random number generator.
     MersenneTwister rng;
+    rng.setSeed(seed);
+    std::cout << "# Random seed set to "<< rng.getSeed()<< std::endl;
 
     // Initialise particle initialisation object.
     Initialise initialise;
@@ -200,11 +228,16 @@ int main(int argc, char** argv){
     //std::cout << top.Ni[0] <<", "<< top.Ni[1] << std::endl;
     initialise.random(top, particles, cells, box, rng, false);
 
-    // double p1[2] = {1., 1.};
-    // double p2[2] = {2.4, 1.};
-    // double o1[2] = {1., 0.};
-    // double o2[2] = {1., 0.};
-    // std::cout << patchyDisc.computePairEnergy(0, p1, o1, 1, p2, o2) << std::endl;
+    // for (double t=0; t<=360; t+=1)
+    // {
+    //     double p1[2] = {10., 10.};
+    //     double p2[2] = {10.84, 10.84};
+    //     double o1[2] = {cos(30./180*M_PI), sin(30./180*M_PI)};
+    //     double o2[2] = {cos(t/180*M_PI), sin(t/180*M_PI)};
+    //     double E = patchyDisc.computePairEnergy(0, p1, o1, 1, p2, o2);
+    //     std::cout << t << " " << E <<"     "<< o2[0]<< " "<<o2[1] << std::endl << std::endl;
+    // }
+    // exit(1);
 
 
     // Initialise data structures needed by the VMMC class.
@@ -248,8 +281,12 @@ int main(int argc, char** argv){
 #endif
 
     // Initialise VMMC object.
-    vmmc::VMMC vmmc(nParticles, dimension, coordinates, orientations,
+    vmmc::VMMC vmmc(rng, nParticles, dimension, coordinates, orientations,
         0.15, 0.2, 0.5, 0.5, maxInteractions, &boxSizeVec[0], isIsotropic, false, callbacks);
+
+    // Initialise single particle move object.
+    // Todo rng should be an arguman.
+    //SingleParticleMove MC(&patchyDisc, 0.2, 0.1, 0.5, false);
 
     // save init conf and print init energy (is not needed if restarting)
     long long int starting_step = 0;
@@ -259,7 +296,11 @@ int main(int argc, char** argv){
     // Execute the simulation.
     for(curr_step = starting_step; curr_step < sweeps && !stop; curr_step++)
     {
-        vmmc += nParticles;
+        for (unsigned int i=0; i<nParticles/2; i++)
+        {
+            vmmc ++;
+            //MC ++;
+        }
         if(curr_step > 0 && (curr_step % (output_every)) == 0)
         {
             io.appendXyzTrajectory(trajectory, curr_step, box, particles, false, true);

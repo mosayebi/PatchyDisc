@@ -122,8 +122,9 @@ double GaussianPatchyDisc::computePairEnergy(unsigned int particle1, const doubl
 
     // Calculate the angular modulation of the LJ interaction.
     // examine all patch pairs and take the one that has the maximum value.
-    double max_modulation = 0.0;
+    double max_modulation, p1Angle, p2Angle;
     double r12Angle, r21Angle, modulation;
+    max_modulation = 0.0;
     // TODO: fast atan2 approx:https://gist.github.com/volkansalma/2972237
     // TODO: atan2 table
     r12Angle = atan2(sep[1], sep[0]);
@@ -131,9 +132,11 @@ double GaussianPatchyDisc::computePairEnergy(unsigned int particle1, const doubl
 
     for (unsigned int i=0;i<top.nPatches[t1];i++)
     {
-        double p1Angle = atan2(orientation1[1], orientation1[0]);
+        //double p1Angle;
+        p1Angle = atan2(orientation1[1], orientation1[0]);
         //std::cout<< "orientation1 angle " << p1Angle/M_PI*180 << std::endl;
         p1Angle += top.patchAngles[t1][i];
+        p1Angle = p1Angle - r12Angle;
         //std::cout << "1 (patch "<<i<<"): o1=("<<orientation1[0]<<","<<orientation1[1]<<"),   angle1="<<p1Angle/M_PI*180<<std::endl;
 
         // std::vector<double> coord1(2);
@@ -144,15 +147,14 @@ double GaussianPatchyDisc::computePairEnergy(unsigned int particle1, const doubl
 
         for (unsigned int j=0;j<top.nPatches[t2];j++)
         {
-            double p2Angle = atan2(orientation2[1], orientation2[0]);
+            //double p2Angle;
+            p2Angle = atan2(orientation2[1], orientation2[0]);
             //std::cout<< "orientation2 angle " << p1Angle/M_PI*180 << std::endl;
             p2Angle += top.patchAngles[t2][j];
-            //std::cout << "2 (patch "<<j<<"): o2=(" <<orientation2[0]<<","<<orientation2[1]<<"),   angle2="<<p2Angle/M_PI*180<<std::endl;
-            p1Angle = p1Angle - r12Angle;
             p2Angle = p2Angle - r21Angle;
             while (p1Angle > M_PI) p1Angle -= 2*M_PI;
             while (p2Angle < -M_PI) p2Angle += 2*M_PI;
-            //std::cout << p1Angle << std::endl;
+            //std::cout << "# " << p1Angle*M_PI/180 << " " << p2Angle*M_PI/180 << std::endl;
 
             modulation = (p1Angle*p1Angle)/twoSigmapSq[t1][t2] + (p2Angle*p2Angle)/twoSigmapSq[t1][t2];
             modulation = exp(-modulation);

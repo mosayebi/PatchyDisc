@@ -1,23 +1,35 @@
 {
-    "types": 2,
-    "particle_numbers" : [
-        {"type": 0, "N":2500},
-        {"type": 1, "N":10}
-    ],
-    "box_size": 100,
-    "patches": [
-        {"type": 0, "nPatches": 3, "angles" : [0.0, 120, 240.0]},
-        {"type": 1, "nPatches": 2, "angles" : [0.0, 120.0]}
-    ],
-    "pair_coeff" : [
-        {"type1":0, "type2":0, "epsilon":50.0, "delta":1.0, "sigma":1.0, "sigma_p": 0.2, "rcut": 1.5},
-        {"type1":0, "type2":1, "epsilon":50.0, "delta":1.0, "sigma":1.0, "sigma_p": 0.2, "rcut": 1.5},
-        {"type1":1, "type2":0, "epsilon":50.0, "delta":1.0, "sigma":1.0, "sigma_p": 0.2, "rcut": 1.5},
-        {"type1":1, "type2":1, "epsilon":50.0, "delta":1.0, "sigma":1.0, "sigma_p": 0.2, "rcut": 1.5}
-    ],
-    "trajectory": "trajectory.xyz",
-    "init_conf": "init.xyz",
-    "last_conf": "last_conf.xyz",
-    "output_every": 1000,
-    "sweeps": 1e6
+    "initialisation" :
+    {
+        "seed": 42,
+        "mode": "random_conf",
+        "random_conf":{
+            "types": 2,
+            "particle_numbers" : [{"type": 0, "N":4900}, {"type": 1, "N":100}],
+            "box_size": 200.0
+        },
+        "init_conf": "last_conf.xyz",
+        "square_lattice_conf":{
+            "lattice_constant": 1.2
+        }
+    },
+    "topology" :
+    {
+        "patches": [
+            {"type": 0, "nPatches": 3, "angles" : [0.0, 120, 240.0]},
+            {"type": 1, "nPatches": 2, "angles" : [0.0, 120.0]}
+        ],
+        "pair_coeff" : [
+            {"type1":0, "type2":0, "epsilon":20.0, "delta":1.0, "sigma":1.0, "sigma_p": 0.3, "rcut": 1.5},
+            {"type1":0, "type2":1, "epsilon":20.0, "delta":1.0, "sigma":1.0, "sigma_p": 0.3, "rcut": 1.5},
+            {"type1":1, "type2":0, "epsilon":20.0, "delta":1.0, "sigma":1.0, "sigma_p": 0.3, "rcut": 1.5},
+            {"type1":1, "type2":1, "epsilon":20.0, "delta":1.0, "sigma":1.0, "sigma_p": 0.3, "rcut": 1.5}
+        ]
+    },
+    "IO": {
+        "trajectory": "trajectory.xyz",
+        "last_conf": "last_conf.xyz",
+        "output_every": 500,
+        "sweeps": 1e6
+    }
 }

@@ -37,6 +37,7 @@ namespace vmmc
     }
 
     VMMC::VMMC(
+        MersenneTwister& rng_,
         unsigned int nParticles_,
         unsigned int dimension_,
         double* coordinates,
@@ -55,6 +56,7 @@ namespace vmmc
         bool isRepusive_,
         const CallbackFunctions& callbacks_) :
 
+        rng(rng_),
         nAttempts(0),
         nAccepts(0),
         nRotations(0),
@@ -208,11 +210,11 @@ namespace vmmc
         if (callbacks.boundaryCallback == nullptr) callbacks.isCustomBoundary = false;
         else callbacks.isCustomBoundary = true;
 
-        std::cout << "Initialised VMMC";
+        std::cout << "# Initialised VMMC";
 #ifdef ISOTROPIC
         std::cout << " (isotropic)";
 #endif
-        std::cout << ".\nseed\t" << rng.getSeed() << '\n';
+        std::cout << std::endl; //".\nseed\t" << rng.getSeed() << '\n';
         // Print version info.
 #ifdef COMMIT
         std::cout << "commit\t" << COMMIT << '\n';

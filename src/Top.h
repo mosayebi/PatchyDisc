@@ -8,10 +8,14 @@
 */
 
 //! Structure containing attributes for an individual particle.
-struct Top
+class Top
 {
+    public:
+
     //! Default constructor.
-    Top(unsigned int nTypes_);
+    Top();
+
+    void setSize(unsigned int);
 
     unsigned int nTypes;                 //!< no Particle type.
 

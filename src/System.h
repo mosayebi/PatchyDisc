@@ -10,6 +10,6 @@
 //#include "PatchyDisc.h"
 #include "Top.h"
 #include "GaussianPatchyDisc.h"
-//#include "SingleParticleMove.h"
+#include "SingleParticleMove.h"
 
 #endif

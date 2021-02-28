@@ -26,7 +26,7 @@
 */
 
 // FORWARD DECLARATIONS
-struct Top;
+class Top;
 
 //! Class defining the Patchy-Disc potential.
 class GaussianPatchyDisc : public Model

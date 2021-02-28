@@ -1,17 +1,21 @@
 #include "Top.h"
 
-Top::Top(unsigned int nTypes_) :
-    nTypes(nTypes_),
-    Ni(std::vector<unsigned int>(nTypes)),
-    nPatches(std::vector<unsigned int>(nTypes)),
-    patchAngles(std::vector<std::vector<double>>(nTypes)),
-    //cosPatchAngles(std::vector<std::vector<double>>(nTypes)),
-    //sinPatchAngles(std::vector<std::vector<double>>(nTypes)),
-    epsilon(std::vector<std::vector<double>>(nTypes, std::vector<double>(nTypes))),
-    delta(std::vector<std::vector<double>>(nTypes, std::vector<double>(nTypes))),
-    sigma(std::vector<std::vector<double>>(nTypes, std::vector<double>(nTypes))),
-    sigma_p(std::vector<std::vector<double>>(nTypes, std::vector<double>(nTypes))),
-    rcut(std::vector<std::vector<double>>(nTypes, std::vector<double>(nTypes)))
-    //rcut_sq(std::vector<std::vector<double>>(nTypes, std::vector<double>(nTypes)))
+Top::Top()
 {
+}
+
+void Top::setSize(unsigned int nTypes_)
+{
+
+    nTypes = nTypes_;
+
+    epsilon.resize(nTypes, std::vector<double>(nTypes));
+    delta.resize(nTypes, std::vector<double>(nTypes));
+    sigma.resize(nTypes, std::vector<double>(nTypes));
+    sigma_p.resize(nTypes, std::vector<double>(nTypes));
+    rcut.resize(nTypes, std::vector<double>(nTypes));
+
+    Ni.resize(nTypes);
+    nPatches.resize(nTypes);
+    patchAngles.resize(nTypes);
 }

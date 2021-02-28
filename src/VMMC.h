@@ -23,6 +23,11 @@
 
 #include "MersenneTwister.h"
 
+// FORWARD DECLARATIONS
+class MersenneTwister;
+
+
+
 /*! \file VMMC.h
     \brief A simple class for executing Virtual Move Monte Carlo moves (cluster translations and rotations).
     For algorithmic details, see:
@@ -258,9 +263,9 @@ namespace vmmc
                 Callback function container.
         */
 #ifndef ISOTROPIC
-        VMMC(unsigned int, unsigned int, double*, double*, double, double, double, double, unsigned int, double*, bool*, bool,
+        VMMC(MersenneTwister&, unsigned int, unsigned int, double*, double*, double, double, double, double, unsigned int, double*, bool*, bool,
 #else
-        VMMC(unsigned int, unsigned int, double*, double, double, double, double, unsigned int, double*, bool,
+        VMMC(MersenneTwister&, unsigned int, unsigned int, double*, double, double, double, double, unsigned int, double*, bool,
 #endif
             const CallbackFunctions&);
 
@@ -324,7 +329,7 @@ namespace vmmc
         //! Reset statistics.
         void reset();
 
-        MersenneTwister rng;                        //!< Random number generator.
+        MersenneTwister& rng;                        //!< Random number generator.
 
     private:
         Parameters moveParams;                      //!< Parameters for the trial move.

@@ -14,7 +14,7 @@ cd build
 cmake ..
 make
 ```
-After a successfull compilation, the executable can be found in `build/PatchyDisk`.
+A successfull compilation will create the executable file `build/PatchyDisk`.
 
 ## Running examples
 ```

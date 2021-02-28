@@ -21,7 +21,7 @@ A successfull compilation will create the executable file `build/PatchyDisk`.
 cd examples
 ../build/PatchyDisk input_mixture.json
 ```
-This will run a simulation using the parameters configureed in the `input_mixtures.json`.
+This will run a simulation using the parameters configureed in the `input_mixture.json`.
 
 ## Visualisation
 The trajectory is saved in XYZ format. You can vissualise it in the visualaisation package of your choice. However, I recommend using [ovito](https://www.ovito.org/).

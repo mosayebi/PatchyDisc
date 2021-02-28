@@ -82,13 +82,6 @@ int main(int argc, char** argv){
 	signal(SIGINT, gbl_terminate);
 	signal(SIGUSR2, gbl_terminate);
 
-
-	//input_file input;
-	//loadInputFile(&input, argv[1]);
-	//if(input.state == ERROR) exit(1);
-    //getInputDouble(&input, "density", &density, 1);
-
-
     // Simulation parameters.
     unsigned int dimension = 2;                     // dimension of simulation box
     double interactionRange = 1.0;                  // interaction range. #diameter of patch (in units of particle diameter)
@@ -100,7 +93,6 @@ int main(int argc, char** argv){
 	 */
     json inp;
     inp = ReadJsonFromFile(argv[1]);
-
     //std::cout << std::setw(4) << inp << std::endl;
 
 
@@ -110,24 +102,25 @@ int main(int argc, char** argv){
     Top top;
     double box_size;
 
+    std::string name="initialisation";
     unsigned int seed = std::random_device{}();
-    if (inp["initialisation"].contains("seed")) seed = inp["initialisation"]["seed"];
+    if (inp[name].contains("seed")) seed = inp[name]["seed"];
     // figure out initialisation mode
-    std::string init_mode = inp["initialisation"]["mode"];
-    if (inp["initialisation"].contains(init_mode))
+    std::string init_mode = inp[name]["mode"];
+    if (inp[name].contains(init_mode))
     {
         if (init_mode == "random_conf")
         {
-            nTypes =inp["initialisation"]["random_conf"]["types"];
+            nTypes =inp[name][init_mode]["types"];
             top.setSize(nTypes);
             //init Ni
             for (unsigned int i=0;i<nTypes;i++){
-                unsigned int t1 = inp["initialisation"]["random_conf"]["particle_numbers"][i]["type"];
-                top.Ni[t1] = inp["initialisation"]["random_conf"]["particle_numbers"][i]["N"];
+                unsigned int t1 = inp[name][init_mode]["particle_numbers"][i]["type"];
+                top.Ni[t1] = inp[name][init_mode]["particle_numbers"][i]["N"];
                 nParticles += top.Ni[t1];
             }
 
-            box_size = inp["initialisation"]["random_conf"]["box_size"];
+            box_size = inp[name][init_mode]["box_size"];
             // double density = nParticles * (M_PI/4) / (box_size*box_size);   // area fraction assuming all sigma=1.
             printf("# Number density is %5.4f\n", nParticles/box_size/box_size );
         }
@@ -145,12 +138,13 @@ int main(int argc, char** argv){
     // Initialise topology
     // patches
     unsigned int t1, t2;
+    name="topology";
     for (unsigned int i=0;i<nTypes;i++){
-        t1 = inp["topology"]["patches"][i]["type"];
-        top.nPatches[t1] = inp["topology"]["patches"][i]["nPatches"];
+        t1 = inp[name]["patches"][i]["type"];
+        top.nPatches[t1] = inp[name]["patches"][i]["nPatches"];
         //std::cout << inp["patches"][i]["angles"] << std::endl;
         for (unsigned int j=0;j<top.nPatches[t1];j++){
-            double dummy = inp["topology"]["patches"][i]["angles"][j];
+            double dummy = inp[name]["patches"][i]["angles"][j];
             top.patchAngles[t1].push_back(M_PI * (dummy / 180.0));
         }
     }
@@ -158,13 +152,13 @@ int main(int argc, char** argv){
     unsigned int counter = 0;
     for (unsigned int i=0;i<nTypes;i++){
         for (unsigned int j=0;j<nTypes;j++){
-            t1 = inp["topology"]["pair_coeff"][counter]["type1"];
-            t2 = inp["topology"]["pair_coeff"][counter]["type2"];
-            top.epsilon[t1][t2] = inp["topology"]["pair_coeff"][counter]["epsilon"];
-            top.delta[t1][t2] = inp["topology"]["pair_coeff"][counter]["delta"];
-            top.sigma[t1][t2] = inp["topology"]["pair_coeff"][counter]["sigma"];
-            top.sigma_p[t1][t2] = inp["topology"]["pair_coeff"][counter]["sigma_p"];
-            top.rcut[t1][t2] = inp["topology"]["pair_coeff"][counter]["rcut"];
+            t1 = inp[name]["pair_coeff"][counter]["type1"];
+            t2 = inp[name]["pair_coeff"][counter]["type2"];
+            top.epsilon[t1][t2] = inp[name]["pair_coeff"][counter]["epsilon"];
+            top.delta[t1][t2] = inp[name]["pair_coeff"][counter]["delta"];
+            top.sigma[t1][t2] = inp[name]["pair_coeff"][counter]["sigma"];
+            top.sigma_p[t1][t2] = inp[name]["pair_coeff"][counter]["sigma_p"];
+            top.rcut[t1][t2] = inp[name]["pair_coeff"][counter]["rcut"];
             counter += 1;
 
             if (interactionEnergy<top.epsilon[t1][t2]) interactionEnergy=top.epsilon[t1][t2];
@@ -174,18 +168,15 @@ int main(int argc, char** argv){
 
 
     unsigned int output_every = 1000;
-    if (inp["IO"].contains("output_every")) output_every = inp["IO"]["output_every"];
-    unsigned int sweeps = inp["IO"]["sweeps"];
+    name = "output";
+    if (inp[name].contains("output_every")) output_every = inp[name]["output_every"];
+    unsigned int sweeps = inp[name]["sweeps"];
     std::string last_conf = "last_conf.xyz";
-    if (inp["IO"].contains("last_conf")) last_conf = inp["IO"]["last_conf"];
+    if (inp[name].contains("last_conf")) last_conf = inp[name]["last_conf"];
     std::string trajectory = "trajectory.xyz";
-    if (inp["IO"].contains("trajectory")) trajectory = inp["IO"]["trajectory"];
-
-
-
+    if (inp[name].contains("trajectory")) trajectory = inp[name]["trajectory"];
 
     //exit(1);
-
 
     // Data structures.
     std::vector<Particle> particles(nParticles);    // particle container

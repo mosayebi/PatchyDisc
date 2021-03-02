@@ -31,14 +31,18 @@ Below is the contents of a sample input file for simulating a mixture of tri-val
 {
     "initialisation" :
     {
-        "mode": "from_random_conf",
-        "from_random_conf":{
+        "mode": "from_init_conf",
+        "from_random_conf":
+        {
             "types": 2,
             "particle_numbers" : [{"type": 0, "N":300}, {"type": 1, "N":100}],
             "box": [40.0, 40.0]
         },
-        "from_init_conf": {"init_conf": "last_conf.xyz",
-            "restart_step_counter": false}
+        "from_init_conf":
+        {
+            "init_conf": "last_conf.xyz",
+            "restart_step_counter": false
+        }
     },
 
 
@@ -56,13 +60,15 @@ Below is the contents of a sample input file for simulating a mixture of tri-val
         ]
     },
 
-    "simulation parameters": {
+    "simulation parameters":
+    {
         "seed": 42,
         "interaction": "GaussianPatchyDisc",
         "trajectory": "trajectory.xyz",
         "last_conf": "last_conf.xyz",
-        "output_every": 500,
-        "sweeps": 5e4
+        "log_file" : "log.dat",
+        "output_every": 1000,
+        "sweeps": 1e5
     }
 }
 ```

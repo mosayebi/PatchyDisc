@@ -1,25 +1,25 @@
-# PatchyDisk
+# PatchyDisc
 This is an implementation of the [Gaussian patchy disk](https://arxiv.org/abs/1607.06626) model. The code was built based on the [VMMC library](https://github.com/lohedges/vmmc) of Lester Hedges.
 
 ## Requirements
 - cmake >= 3.11
 - [nlohmann json library](https://github.com/nlohmann/json) 
 
-## Compiling Patchy Disk
+## Compiling PatchyDisc
 ```
-git clone git@github.com:mosayebi/PatchyDisk.git
-cd PatchyDisk
+git clone git@github.com:mosayebi/PatchyDisc.git
+cd PatchyDisc
 mkdir build
 cd build
 cmake ..
 make
 ```
-A successfull compilation will create the executable file `build/PatchyDisk`.
+A successfull compilation will create the executable file `build/PatchyDisc`.
 
 ## Running examples
 ```
 cd examples
-../build/PatchyDisk input_mixture.json
+../build/PatchyDisc input_mixture.json
 ```
 This will run a simulation using the parameters configureed in the `input_mixture.json`.
 
@@ -31,4 +31,4 @@ When importing the trajectory in ovito, please choose the follwing order for the
 To load a particle shape in ovito under the "Data source" panel click on "Particle Types" and choose a particle type. The "Load shape..."  bottom can then be found in the bottom of the panel.
 
 
-![Binary mixture of patchy disks](mixture.gif)
+![Binary mixture of patchy discs](mixture.gif)

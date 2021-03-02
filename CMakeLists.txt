@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.11...3.19)
 
 # Project name and a few useful settings. Other commands can pick up the results
 project(
-  PatchyDisk
+  PatchyDisc
   VERSION 1.0
   LANGUAGES CXX)
 
@@ -27,10 +27,10 @@ file(GLOB_RECURSE sources      src/*.cpp src/*.h)
 ###############################################################################
 
 # add the data to the target, so it becomes visible in some IDE
-add_executable(PatchyDisk ${sources})
+add_executable(PatchyDisc ${sources})
 
 # just for example add some compiler flags
-target_compile_options(PatchyDisk PUBLIC -std=c++1y -Wall -Wno-float-conversion -ffast-math -O3)
+target_compile_options(PatchyDisc PUBLIC -std=c++1y -Wall -Wno-float-conversion -ffast-math -O3)
 
 # this lets me include files relative to the root src dir with a <> pair
 # target_include_directories( PUBLIC src/main)
@@ -47,4 +47,4 @@ target_compile_options(PatchyDisk PUBLIC -std=c++1y -Wall -Wno-float-conversion 
 # this defines the variables Boost_LIBRARIES that contain all library names
 # that we need to link to
 find_package(nlohmann_json 3.2.0 REQUIRED)
-target_link_libraries(PatchyDisk PRIVATE nlohmann_json::nlohmann_json)
+target_link_libraries(PatchyDisc PRIVATE nlohmann_json::nlohmann_json)

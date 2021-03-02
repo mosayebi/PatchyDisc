@@ -63,17 +63,17 @@ int main(int argc, char** argv){
 
     // Initialise the patchy disc model.
     GaussianPatchyDisc patchyDisc(box, particles, cells, top, maxInteractions, interactionEnergy, interactionRange);
-    // if (interaction == "GaussianPatchyDisk")
+    // if (interaction == "GaussianPatchyc")
     // {
     //     patchyDisc = GaussianPatchyDisc(box, particles, cells, top, maxInteractions, interactionEnergy, interactionRange);
     //     hasFiniteRepulsion = true;
     // }
-    // else if (interaction == "GaussianPatchyDiskHR")
+    // else if (interaction == "GaussianPatchyDiscHR")
     // {
     //     patchyDisc = GaussianPatchyDiscHR(box, particles, cells, top, maxInteractions, interactionEnergy, interactionRange);
     //     hasFiniteRepulsion = false;
     // }
-    // else if (interaction == "GaussianPatchyDiskHRSW")
+    // else if (interaction == "GaussianPatchyDiscHRSW")
     // {
     //     patchyDisc = GaussianPatchyDiscHRSW(box, particles, cells, top, maxInteractions, interactionEnergy, interactionRange);
     //     hasFiniteRepulsion = false;

@@ -11,7 +11,7 @@
         "from_init_conf":
         {
             "init_conf": "last_conf.xyz",
-            "restart_step_counter": false
+            "restart_step_counter": true
         }
     },
 

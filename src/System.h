@@ -25,6 +25,14 @@
     #define M_PI 3.1415926535897932384626433832795
 #endif
 
+
+// FORWARD DECLARATIONS
+
+class  Box;
+class  CellList;
+struct Particle;
+
+
 int stop = 0;
 
 // Simulation parameters.
@@ -43,6 +51,7 @@ std::string init_conf="init_conf.xyz";
 std::string trajectory = "trajectory.xyz";
 std::string last_conf = "last_conf.xyz";
 std::string init_mode = "from_init_conf";
+std::string log_file = "log.dat";
 
 unsigned int output_every = 1000;
 unsigned int sweeps = 10000;
@@ -78,6 +87,73 @@ void getParamsFromInitConf(std::string fileName)
             for (unsigned int j=0;j<dimension;j++) dataFile >> dummy[j];
         }
         nTypes = max_type + 1;
+    }
+    else
+    {
+        std::cerr << "[ERROR] getParamsFromInitConf(): Invalid init_conf file ('"<< fileName <<"')!\n";
+        exit(EXIT_FAILURE);
+    }
+    // Close file stream.
+    dataFile.close();
+}
+
+
+void loadInitialConfiguration(std::string fileName, Box& box, std::vector<Particle>& particles, CellList& cells)
+{
+    std::ifstream dataFile;
+    std::vector<double> dummy (dimension);
+    for (unsigned int i=0; i<nTypes; i++) top.Ni[i]=0;
+
+    dataFile.open(fileName.c_str());
+
+    // Check that the file is valid.
+    if (dataFile.good())
+    {
+        dataFile >> nParticles;
+        dataFile >> starting_step;
+        for (unsigned int j=0;j<dimension;j++) dataFile >> boxSizeVec[j];
+        for (unsigned int i=0;i<nParticles;i++)
+        {
+            // Set particle index.
+            particles[i].index = i;
+
+            // Set particle index, and increment the particle number container.
+            dataFile >> particles[i].type;
+            top.Ni[particles[i].type] += 1;
+
+            // Resize position and orientation vectors.
+            particles[i].position.resize(box.dimension);
+            particles[i].orientation.resize(box.dimension);
+
+            // Load position.
+            for (unsigned int j=0;j<box.dimension;j++)
+                dataFile >> particles[i].position[j];
+
+            // Load orientation.
+            // Becuase we store the quaternion elements (sin(t/2), cos(t/2)) in the
+            // trajectory, we need to convert them to orientation vectors. The conversion is
+            //    sin(t) = 2*sin(t/2)*cos(t/2)
+            //    cos(t) = cos(t/2)^2 - sin(t/2)^2
+            // where orientation is just (sin(t), cos(t))
+            // We make sure that orientation is normal at the end.
+            for (unsigned int j=0;j<box.dimension;j++)
+                dataFile >> dummy[j];
+            particles[i].orientation[0] = dummy[1]*dummy[1] - dummy[0]*dummy[0];
+            particles[i].orientation[1] = 2 * dummy[0]*dummy[1];
+            double norm = sqrt(particles[i].orientation[0]*particles[i].orientation[0]
+                             + particles[i].orientation[1]*particles[i].orientation[1]);
+            particles[i].orientation[0] /= norm;
+            particles[i].orientation[1] /= norm;
+
+            // Enforce periodic boundary conditions.
+            box.periodicBoundaries(particles[i].position);
+
+            // Calculate the particle's cell index.
+            particles[i].cell = cells.getCell(particles[i]);
+
+            // Update cell list.
+            cells.initCell(particles[i].cell, particles[i]);
+        }
     }
     else
     {
@@ -169,6 +245,7 @@ void parseSimulationParamBlock()
     if (inp[name].contains("output_every")) output_every = inp[name]["output_every"];
     if (inp[name].contains("last_conf")) last_conf.assign(inp[name]["last_conf"]);
     if (inp[name].contains("trajectory")) trajectory.assign(inp[name]["trajectory"]);
+    if (inp[name].contains("log_file")) log_file.assign(inp[name]["log_file"]);
     if (inp[name].contains("seed")) seed = inp[name]["seed"];
     if (inp.contains("interaction")) interaction.assign(inp["interaction"]);
     sweeps = inp[name]["sweeps"];

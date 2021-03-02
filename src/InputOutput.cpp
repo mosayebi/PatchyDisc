@@ -130,6 +130,7 @@ void InputOutput::appendXyzTrajectory(std::string filename, long long int step, 
     pFile = fopen(filename.c_str(), "a");
     fprintf(pFile, "%lu\n", particles.size());
     // Write step, and box size in the comment line.
+
     fprintf(pFile, "%lld    %8.6f %8.6f", step, box.boxSize[0], box.boxSize[1]);
     if (box.dimension == 3) fprintf(pFile, " %8.6f", box.boxSize[2]);
     fprintf(pFile, "\n");
@@ -164,6 +165,26 @@ void InputOutput::appendXyzTrajectory(std::string filename, long long int step, 
 
     fclose(pFile);
 }
+
+
+void InputOutput::appendLog(std::string filename, long long int step, double energy, bool clearFile)
+{
+    // if writeQuaternion=true, the last two components of the quaternion (i.e. sin(theta/2) and cos(theta/2) are written in the oreintation fields) 
+    FILE* pFile;
+
+    // Wipe existing trajectory file.
+    if (clearFile)
+    {
+        pFile = fopen(filename.c_str(), "w");
+        fclose(pFile);
+    }
+
+    pFile = fopen(filename.c_str(), "a");
+    printf("sweep=%lld   energy=%8.6f\n", step, energy);
+    fprintf(pFile, "%lld   %8.6f\n", step, energy);
+    fclose(pFile);
+}
+
 
 void InputOutput::vmdScript(const std::vector<double>& boxSize)
 {

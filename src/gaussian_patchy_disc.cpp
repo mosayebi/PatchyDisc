@@ -95,9 +95,7 @@ int main(int argc, char** argv){
     }
     else if (init_mode == "from_init_conf")
     {
-        //TODO
-        //Ni
-        //io.loadConfiguration(init_conf, box, particles, cells, false);
+        loadInitialConfiguration(init_conf, box, particles, cells);
     }
 
     // // For debug
@@ -156,9 +154,23 @@ int main(int argc, char** argv){
     // Initialise single particle move object.
     SingleParticleMove MC(rng, &patchyDisc, 0.2, 0.1, 0.5, false);
 
-    // save init conf and print init energy (is not needed if restarting)
-    printf("sweeps = %10lld, energy = %5.4f\n", starting_step, patchyDisc.getEnergy());
-    io.appendXyzTrajectory(trajectory, starting_step, box, particles, true, true);
+    // append init_conf details depending on restart_step_counter
+    if (restart_step_counter)
+    {
+        starting_step = 0;
+        bool clearFile = true;
+        io.appendXyzTrajectory(trajectory, starting_step, box, particles, clearFile, true);
+        io.appendLog(log_file, starting_step, patchyDisc.getEnergy(), clearFile);
+    }
+    else
+    {
+        bool clearFile = false;
+        if (starting_step % output_every == 0)
+        {
+            io.appendXyzTrajectory(trajectory, starting_step, box, particles, clearFile, true);
+            io.appendLog(log_file, starting_step, patchyDisc.getEnergy(), clearFile);
+        }
+    }
 
     // Execute the simulation.
     for(curr_step = starting_step; curr_step < sweeps && !stop; curr_step++)
@@ -171,7 +183,7 @@ int main(int argc, char** argv){
         if(curr_step > 0 && (curr_step % (output_every)) == 0)
         {
             io.appendXyzTrajectory(trajectory, curr_step, box, particles, false, true);
-            printf("sweeps = %10lld, energy = %5.4f\n", curr_step, patchyDisc.getEnergy());
+            io.appendLog(log_file, curr_step, patchyDisc.getEnergy(), false);
         }
     }
     printf("Writing the last conf to `%s`.", last_conf.c_str());

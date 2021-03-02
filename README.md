@@ -23,6 +23,55 @@ cd examples
 ```
 This will run a simulation using the parameters configureed in the `input_mixture.json`.
 
+## Input file
+
+Below is a sample input file to simulate a mixture of tri-valant and bi-valant patchy discs. 
+
+```
+{
+    "initialisation" :
+    {
+        "mode": "from_random_conf",
+        "from_random_conf":{
+            "types": 2,
+            "particle_numbers" : [{"type": 0, "N":300}, {"type": 1, "N":100}],
+            "box": [40.0, 40.0]
+        },
+        "from_init_conf": {"init_conf": "last_conf.xyz",
+            "restart_step_counter": false}
+    },
+
+
+    "topology" :
+    {
+        "patches": [
+            {"type": 0, "nPatches": 3, "angles" : [0.0, 120, 240.0]},
+            {"type": 1, "nPatches": 2, "angles" : [0.0, 120.0]}
+        ],
+        "pair_coeff" : [
+            {"type1":0, "type2":0, "epsilon":15.0, "delta":1.0, "sigma":1.0, "sigma_p": 0.3, "rcut": 1.5},
+            {"type1":0, "type2":1, "epsilon":5.0, "delta":1.0, "sigma":1.0, "sigma_p": 0.3, "rcut": 1.5},
+            {"type1":1, "type2":0, "epsilon":5.0, "delta":1.0, "sigma":1.0, "sigma_p": 0.3, "rcut": 1.5},
+            {"type1":1, "type2":1, "epsilon":15.0, "delta":1.0, "sigma":1.0, "sigma_p": 0.3, "rcut": 1.5}
+        ]
+    },
+
+    "simulation parameters": {
+        "seed": 42,
+        "interaction": "GaussianPatchyDisc",
+        "trajectory": "trajectory.xyz",
+        "last_conf": "last_conf.xyz",
+        "output_every": 500,
+        "sweeps": 5e4
+    }
+}
+```
+Currently the following interactions are implemented
+
+- `GaussianPatchyDisc` -- It is described in the [reference](https://arxiv.org/abs/1607.06626).
+- `GaussianPatchyDiscHR` -- Same as the `GaussianPatchyDisc`, but with a hard core repulsion when $r_{ij} \lt \sigma_{ij}$.
+- `GaussianPatchyDiscHRSW` -- Same as the `GaussianPatchyDiscHRSW`, but with a Square Well poential when  $r_{ij} \le {r_{cut}}_{ij}$.
+
 ## Visualisation
 The trajectory is saved in XYZ format. You can vissualise it in the visualaisation package of your choice. However, I recommend using [ovito](https://www.ovito.org/).
 

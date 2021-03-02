@@ -59,6 +59,7 @@ public:
 
     std::vector<double> boxSize;        //!< Size of the box in x,y,z directions.
     unsigned int dimension;             //!< Dimensionality of the simulation box.
+    double Volume = 1.0f;
 
 private:
     std::vector<bool>   isPeriodic;     //!< Whether the box is periodic across each boundary.

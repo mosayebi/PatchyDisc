@@ -22,6 +22,7 @@
 
 #include "MersenneTwister.h"
 
+
 /*! \file SingleParticleMove.h
     \brief A class for executing single particle Move Monte Carlo moves (translations and rotations).
 */
@@ -30,6 +31,7 @@
 
 class  Model;
 struct Particle;
+class  MersenneTwister;
 
 //! Container for storing move parameters.
 struct MoveParams
@@ -60,7 +62,7 @@ public:
         \param isIsotropic_
             Whether the potential is isotropic.
      */
-    SingleParticleMove(Model*, double, double, double, bool);
+    SingleParticleMove(MersenneTwister&, Model*, double, double, double, bool);
 
     //! Overloaded ++ operator. Perform a single step.
     void operator ++ (const int);

@@ -24,6 +24,9 @@ Box::Box(const std::vector<double>& boxSize_) :
     boxSize(boxSize_)
 {
     dimension = boxSize.size();
+    for (unsigned int i=0; i<dimension; i++){
+        Volume*=boxSize[i];
+    }
 
     // Check dimensionality is valid.
     if (dimension != 2 && dimension != 3)

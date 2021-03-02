@@ -17,19 +17,19 @@
   Adapted from PatchyDisc.h
 */
 
-#ifndef _GAUSSIANPATCHYDISC_H
-#define _GAUSSIANPATCHYDISC_H
+#ifndef _GAUSSIANPATCHYDISCHRSW_H
+#define _GAUSSIANPATCHYDISCHRSW_H
 
 #include "Model.h"
 
-/*! \file GaussianPatchyDisc.h
+/*! \file GaussianPatchyDiscHRSW.h
 */
 
 // FORWARD DECLARATIONS
 class Top;
 
 //! Class defining the Patchy-Disc potential.
-class GaussianPatchyDisc : public Model
+class GaussianPatchyDiscHRSW : public Model
 {
 public:
     //! Constructor.
@@ -51,7 +51,7 @@ public:
         \param interactionRange_
             The potential cut-off distance (patch diameter).
      */
-    GaussianPatchyDisc(Box&, std::vector<Particle>&, CellList&, Top&, unsigned int, double, double);
+    GaussianPatchyDiscHRSW(Box&, std::vector<Particle>&, CellList&, Top&, unsigned int, double, double);
     //! Calculate the pair energy between two particles.
     /*! \param particle1
             The index of the first particle.
@@ -97,12 +97,7 @@ public:
     Top& top;                           //!< A reference to the Top.
 
 private:
-    //double patchSeparation;         //!< The angle between patches in radians.
-    //std::vector<std::vector<double>> cosTheta;   //!< Lookup table for cosine rotation matrix components.
-    //std::vector<std::vector<double>> sinTheta;   //!< Lookup table for sine rotation matrix components.
     std::vector<unsigned int> idx2type;
-    //std::vector<std::vector<double>> cosPatchAngles; //this is to avoid calling expensive cos function
-    //std::vector<std::vector<double>> sinPatchAngles; //this is to avoid calling expensive sin function
     std::vector<std::vector<double>> rcut_sq;
     std::vector<std::vector<double>> lj_shift;
     std::vector<std::vector<double>> twoSigmapSq;
@@ -114,4 +109,4 @@ private:
     // unsigned int tableSize = max_x / dx + 1.0;
 };
 
-#endif  /* _GAUSSIANPATCHYDISC_H */
+#endif  /* _GAUSSIANPATCHYDISCHRSW_H */

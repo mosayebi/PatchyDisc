@@ -27,6 +27,7 @@
 
 InputOutput::InputOutput() {}
 
+
 void InputOutput::loadConfiguration(std::string fileName, Box& box,
     std::vector<Particle>& particles, CellList& cells, bool isIsotropic)
 {
@@ -96,14 +97,14 @@ void InputOutput::saveConfiguration(std::string fileName, Box& box,
     for (unsigned int i=0;i<particles.size();i++)
     {
         // Write particle position.
-        fprintf(pFile, "%5.4f %5.4f", particles[i].position[0], particles[i].position[1]);
-        if (box.dimension == 3) fprintf(pFile, " %5.4f", particles[i].position[2]);
+        fprintf(pFile, "%8.6f %8.6f", particles[i].position[0], particles[i].position[1]);
+        if (box.dimension == 3) fprintf(pFile, " %8.6f", particles[i].position[2]);
 
         // Write particle orientation.
         if (!isIsotropic)
         {
-            fprintf(pFile, " %5.4f %5.4f", particles[i].orientation[0], particles[i].orientation[1]);
-            if (box.dimension == 3) fprintf(pFile, " %5.4f", particles[i].orientation[2]);
+            fprintf(pFile, " %8.6f %8.6f", particles[i].orientation[0], particles[i].orientation[1]);
+            if (box.dimension == 3) fprintf(pFile, " %8.6f", particles[i].orientation[2]);
         }
 
         // Terminate line.
@@ -129,14 +130,14 @@ void InputOutput::appendXyzTrajectory(std::string filename, long long int step, 
     pFile = fopen(filename.c_str(), "a");
     fprintf(pFile, "%lu\n", particles.size());
     // Write step, and box size in the comment line.
-    fprintf(pFile, "%lld    %5.4f %5.4f", step, box.boxSize[0], box.boxSize[1]);
-    if (box.dimension == 3) fprintf(pFile, " %5.4f", box.boxSize[2]);
+    fprintf(pFile, "%lld    %8.6f %8.6f", step, box.boxSize[0], box.boxSize[1]);
+    if (box.dimension == 3) fprintf(pFile, " %8.6f", box.boxSize[2]);
     fprintf(pFile, "\n");
 
     for (unsigned int i=0;i<particles.size();i++)
     {
 #ifdef ISOTROPIC
-        fprintf(pFile, "%3d %5.4f %5.4f %5.4f\n",
+        fprintf(pFile, "%3d %8.6f %8.6f %8.6f\n",
             particles[i].type, particles[i].position[0], particles[i].position[1], (dimension == 3) ? particles[i].position[2] : 0);
 #else
         if (box.dimension == 2)
@@ -144,18 +145,18 @@ void InputOutput::appendXyzTrajectory(std::string filename, long long int step, 
             if (writeQuaternion)
             {
                 double angle = atan2(particles[i].orientation[1], particles[i].orientation[0]);
-                fprintf(pFile, "%3d %5.4f %5.4f %5.4f %5.4f\n",
+                fprintf(pFile, "%3d %8.6f %8.6f %8.6f %8.6f\n",
                 particles[i].type, particles[i].position[0], particles[i].position[1], sin(angle/2), cos(angle/2));
             }
             else
             {
-                fprintf(pFile, "%3d %5.4f %5.4f %5.4f %5.4f\n",
+                fprintf(pFile, "%3d %8.6f %8.6f %8.6f %8.6f\n",
                 particles[i].type, particles[i].position[0], particles[i].position[1], particles[i].orientation[0], particles[i].orientation[1]);
             }
         }
         else
         {
-            fprintf(pFile, "%3d %5.4f %5.4f %5.4f %5.4f %5.4f %5.4f\n",
+            fprintf(pFile, "%3d %8.6f %8.6f %8.6f %8.6f %8.6f %8.6f\n",
             particles[i].type, particles[i].position[0], particles[i].position[1], particles[i].position[2], particles[i].orientation[0], particles[i].orientation[1], particles[i].orientation[2]);
         }
 #endif
@@ -203,13 +204,13 @@ void InputOutput::vmdScript(const std::vector<double>& boxSize)
 
     // Define box boundaries.
     fprintf(pFile, "set minx 0\n");
-    fprintf(pFile, "set maxx %5.4f\n", boxSize[0]);
+    fprintf(pFile, "set maxx %8.6f\n", boxSize[0]);
     fprintf(pFile, "set miny 0\n");
-    fprintf(pFile, "set maxy %5.4f\n", boxSize[1]);
+    fprintf(pFile, "set maxy %8.6f\n", boxSize[1]);
     if (boxSize.size() == 3)
     {
         fprintf(pFile, "set minz 0\n");
-        fprintf(pFile, "set maxz %5.4f\n", boxSize[2]);
+        fprintf(pFile, "set maxz %8.6f\n", boxSize[2]);
     }
     else
     {

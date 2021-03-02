@@ -25,14 +25,14 @@
 #include "CellList.h"
 #include "Particle.h"
 #include "Top.h"
-#include "GaussianPatchyDisc.h"
 #include "Utils.h"
+#include "GaussianPatchyDiscHR.h"
 
 #ifndef M_PI
     #define M_PI 3.1415926535897932384626433832795
 #endif
 
-GaussianPatchyDisc::GaussianPatchyDisc(
+GaussianPatchyDiscHR::GaussianPatchyDiscHR(
     Box& box_,
     std::vector<Particle>& particles_,
     CellList& cells_,
@@ -44,14 +44,14 @@ GaussianPatchyDisc::GaussianPatchyDisc(
     top(top_)
 {
 #ifdef ISOTROPIC
-    std::cerr << "[ERROR] GaussianPatchyDisc: Cannot be used with isotropic VMMC library!\n";
+    std::cerr << "[ERROR] GaussianPatchyDiscHR: Cannot be used with isotropic VMMC library!\n";
     exit(EXIT_FAILURE);
 #endif
 
     // Check dimensionality.
     if (box.dimension != 2)
     {
-        std::cerr << "[ERROR] GaussianPatchyDisc: Model only valid in two dimensions!\n";
+        std::cerr << "[ERROR] GaussianPatchyDiscHR: Model only valid in two dimensions!\n";
         exit(EXIT_FAILURE);
     }
 
@@ -84,7 +84,7 @@ GaussianPatchyDisc::GaussianPatchyDisc(
     // }
 }
 
-double GaussianPatchyDisc::computePairEnergy(unsigned int particle1, const double* position1,
+double GaussianPatchyDiscHR::computePairEnergy(unsigned int particle1, const double* position1,
     const double* orientation1, unsigned int particle2, const double* position2, const double* orientation2)
 {
     unsigned int t1 = idx2type[particle1];
@@ -108,11 +108,7 @@ double GaussianPatchyDisc::computePairEnergy(unsigned int particle1, const doubl
     double energyLJ;
     if (normSqd < sigmaSq[t1][t2])
     {
-        double r2Inv = sigmaSq[t1][t2] / normSqd;
-        double r6Inv = r2Inv*r2Inv*r2Inv;
-        energyLJ = 4.0*top.epsilon[t1][t2]*((r6Inv*r6Inv) - r6Inv) + lj_shift[t1][t2];
-        return energyLJ;
-        // return INF;
+        return INF;
     }
     else if (normSqd < rcut_sq[t1][t2])
     {
@@ -138,15 +134,8 @@ double GaussianPatchyDisc::computePairEnergy(unsigned int particle1, const doubl
         p1Angle += top.patchAngles[t1][i];
         p1Angle = p1Angle - r12Angle;
 
-        // std::vector<double> coord1(2);
-        // coord1[0] = position1[0] + 0.5*(orientation1[0]*cosPatchAngles[t1][i] - orientation1[1]*sinPatchAngles[t1][i]);
-        // coord1[1] = position1[1] + 0.5*(orientation1[0]*sinPatchAngles[t1][i] + orientation1[1]*cosPatchAngles[t1][i]);
-        // // Enforce periodic boundaries.
-        // box.periodicBoundaries(coord1);
-
         for (unsigned int j=0;j<top.nPatches[t2];j++)
         {
-            //double p2Angle;
             p2Angle = atan2(orientation2[1], orientation2[0]);
             p2Angle += top.patchAngles[t2][j];
             p2Angle = p2Angle - r21Angle;
@@ -164,7 +153,7 @@ double GaussianPatchyDisc::computePairEnergy(unsigned int particle1, const doubl
     return energyLJ*max_modulation;
 }
 
-unsigned int GaussianPatchyDisc::computeInteractions(unsigned int particle,
+unsigned int GaussianPatchyDiscHR::computeInteractions(unsigned int particle,
     const double* position, const double* orientation, unsigned int* interactions)
 {
     // Interaction counter.

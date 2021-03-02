@@ -22,12 +22,14 @@
 #include "SingleParticleMove.h"
 
 SingleParticleMove::SingleParticleMove(
+    MersenneTwister& rng_,
     Model* model_,
     double maxTrialTranslation_,
     double maxTrialRotation_,
     double probTranslate_,
     bool isIsotropic_) :
 
+    rng(rng_),
     model(model_),
     maxTrialTranslation(maxTrialTranslation_),
     maxTrialRotation(maxTrialRotation_),

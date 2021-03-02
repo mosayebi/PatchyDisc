@@ -25,14 +25,14 @@
 #include "CellList.h"
 #include "Particle.h"
 #include "Top.h"
-#include "GaussianPatchyDisc.h"
 #include "Utils.h"
+#include "GaussianPatchyDiscHRSW.h"
 
 #ifndef M_PI
     #define M_PI 3.1415926535897932384626433832795
 #endif
 
-GaussianPatchyDisc::GaussianPatchyDisc(
+GaussianPatchyDiscHRSW::GaussianPatchyDiscHRSW(
     Box& box_,
     std::vector<Particle>& particles_,
     CellList& cells_,
@@ -44,14 +44,14 @@ GaussianPatchyDisc::GaussianPatchyDisc(
     top(top_)
 {
 #ifdef ISOTROPIC
-    std::cerr << "[ERROR] GaussianPatchyDisc: Cannot be used with isotropic VMMC library!\n";
+    std::cerr << "[ERROR] GaussianPatchyDiscHRSW: Cannot be used with isotropic VMMC library!\n";
     exit(EXIT_FAILURE);
 #endif
 
     // Check dimensionality.
     if (box.dimension != 2)
     {
-        std::cerr << "[ERROR] GaussianPatchyDisc: Model only valid in two dimensions!\n";
+        std::cerr << "[ERROR] GaussianPatchyDiscHRSW: Model only valid in two dimensions!\n";
         exit(EXIT_FAILURE);
     }
 
@@ -84,7 +84,7 @@ GaussianPatchyDisc::GaussianPatchyDisc(
     // }
 }
 
-double GaussianPatchyDisc::computePairEnergy(unsigned int particle1, const double* position1,
+double GaussianPatchyDiscHRSW::computePairEnergy(unsigned int particle1, const double* position1,
     const double* orientation1, unsigned int particle2, const double* position2, const double* orientation2)
 {
     unsigned int t1 = idx2type[particle1];
@@ -164,7 +164,7 @@ double GaussianPatchyDisc::computePairEnergy(unsigned int particle1, const doubl
     return energyLJ*max_modulation;
 }
 
-unsigned int GaussianPatchyDisc::computeInteractions(unsigned int particle,
+unsigned int GaussianPatchyDiscHRSW::computeInteractions(unsigned int particle,
     const double* position, const double* orientation, unsigned int* interactions)
 {
     // Interaction counter.

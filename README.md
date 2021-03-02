@@ -25,7 +25,7 @@ This will run a simulation using the parameters configureed in the `input_mixtur
 
 ## Input file
 
-Below is the contents of a sample input file for simulating a mixture of tri-valant and bi-valant patchy discs.
+Below is the contents of a sample input file for simulating a mixture of tri-valent and bi-valent patchy discs.
 
 ```json
 {

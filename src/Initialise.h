@@ -90,7 +90,7 @@ private:
         \param box
             A reference to the simulation box.
      */
-    bool checkOverlap(Particle&, std::vector<Particle>&, CellList&, Box&);
+    bool checkOverlap(Particle&, std::vector<Particle>&, CellList&, Box&, Top&);
 
     /// Maximum number of trial particle insertions (per particle).
     static const unsigned int MAX_TRIALS = 100000000;

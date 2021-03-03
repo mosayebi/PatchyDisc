@@ -33,6 +33,8 @@ Initialise::Initialise()
 
 void Initialise::random(Top& top, std::vector<Particle>& particles, CellList& cells, Box& box, MersenneTwister& rng, bool isSpherocylinder)
 {
+    std::cout<< "# Geneating random starting configuration..."<< std::endl;
+
     if (isSpherocylinder && (box.dimension != 3)){
         std::cerr << "[ERROR] Initialise: Spherocylindrical boundary only valid for three dimensional simulation box!\n";
         exit(EXIT_FAILURE);
@@ -49,13 +51,13 @@ void Initialise::random(Top& top, std::vector<Particle>& particles, CellList& ce
     }
 
     unsigned int idx=0;
+    // Current number of attempted particle insertions.
+    unsigned int nTrials = 0;
     for (unsigned int k=0;k<top.Ni.size();k++)
     {
         //std::cout << k <<": "<< top.Ni[k]<<std::endl;
         for (unsigned i=0;i<top.Ni[k];i++)
         {
-            // Current number of attempted particle insertions.
-            unsigned int nTrials = 0;
 
             // Whether particle overlaps.
             bool isOverlap = true;
@@ -110,20 +112,20 @@ void Initialise::random(Top& top, std::vector<Particle>& particles, CellList& ce
     #endif
                     {
                         // See if there is any overlap between particles.
-                        isOverlap = checkOverlap(particles[idx], particles, cells, box);
+                        isOverlap = checkOverlap(particles[idx], particles, cells, box, top);
                     }
                     else isOverlap = true;
                 }
                 else
                 {
                     // See if there is any overlap between particles.
-                    isOverlap = checkOverlap(particles[idx], particles, cells, box);
+                    isOverlap = checkOverlap(particles[idx], particles, cells, box, top);
                 }
 
                 // Check trial limit isn't exceeded.
                 if (nTrials == MAX_TRIALS)
                 {
-                    std::cerr << "[ERROR] Initialise: Maximum number of trial insertions reached.\n";
+                    std::cerr << "[ERROR] Initialise: Maximum number of trial insertions reached. Only "<< idx <<" particles could be added.\n";
                     exit(EXIT_FAILURE);
                 }
             }
@@ -133,6 +135,7 @@ void Initialise::random(Top& top, std::vector<Particle>& particles, CellList& ce
             idx += 1;
         }
     }
+std::cout<< "# Random starting configuration is generated after "<< nTrials <<" insertion trials."<< std::endl;
 }
 
 #ifndef ISOTROPIC
@@ -207,7 +210,7 @@ bool Initialise::outsideSpherocylinder(unsigned int particle, const double* posi
     return false;
 }
 
-bool Initialise::checkOverlap(Particle& particle, std::vector<Particle>& particles, CellList& cells, Box& box)
+bool Initialise::checkOverlap(Particle& particle, std::vector<Particle>& particles, CellList& cells, Box& box, Top& top)
 {
     unsigned int cell, neighbour;
 
@@ -241,7 +244,7 @@ bool Initialise::checkOverlap(Particle& particle, std::vector<Particle>& particl
                     normSqd += sep[k]*sep[k];
 
                 // Overlap if normSqd is less than particle diameter (box is scaled in diameter units).
-                if (normSqd < 1.1) return true; //TODO: use sigma_ij*sigma_ij instead
+                if (normSqd < top.sigma[particle.type][particles[neighbour].type]*top.sigma[particle.type][particles[neighbour].type]) return true; //TODO: use sigma_ij*sigma_ij instead
             }
         }
     }

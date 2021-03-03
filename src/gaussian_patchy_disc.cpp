@@ -63,8 +63,8 @@ int main(int argc, char** argv){
 
     // Initialise the patchy disc model.
     GaussianPatchyDisc patchyDisc(box, particles, cells, top, maxInteractions, interactionEnergy, interactionRange);
-    hasFiniteRepulsion = true;
-    if (interaction != "GaussianPatchyDisc") std::cout<< "# [ERROR] Currently, changing the interaction is not allowed from the input_file. Using the default GaussianPatchyDisc interaction." << std::endl;
+    hasFiniteRepulsion = false;
+    if (interaction != "GaussianPatchyDisc") std::cout<< "# [NotImplementedError] Currently, changing the interaction is not allowed from the input_file. You can do so by editing the source code.\n# Using the default GaussianPatchyDisc interaction" << std::endl;
     // if (interaction == "GaussianPatchyDisc")
     // {
     //     patchyDisc = GaussianPatchyDisc(box, particles, cells, top, maxInteractions, interactionEnergy, interactionRange);
@@ -94,7 +94,6 @@ int main(int argc, char** argv){
     {
         //Generate a random particle configuration.
         initialise.random(top, particles, cells, box, rng, false);
-        std::cout<< "# Random starting configuration is generated."<< std::endl;
     }
     else if (init_mode == "from_init_conf")
     {
@@ -156,7 +155,7 @@ int main(int argc, char** argv){
     vmmc::VMMC vmmc(rng, nParticles, dimension, coordinates, orientations,
         0.15, 0.2, 0.5, 0.5, maxInteractions, &boxSizeVec[0], isIsotropic, hasFiniteRepulsion, callbacks);
     // Initialise single particle move object.
-    SingleParticleMove MC(rng, &patchyDisc, 0.2, 0.1, 0.5, false);
+    // SingleParticleMove MC(rng, &patchyDisc, 0.2, 0.1, 0.5, false);
 
     // Initialisation depending on the restart_step_counter
     if (restart_step_counter)
@@ -184,7 +183,7 @@ int main(int argc, char** argv){
         for (unsigned int i=0; i<nParticles; i++)
         {
             vmmc ++;
-            MC ++;   // both moves cannot be used at the same time. BUG?
+            // MC ++;   // both moves cannot be used at the same time. BUG?
         }
         if(curr_step > 0 && (curr_step % (output_every)) == 0)
         {

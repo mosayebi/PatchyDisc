@@ -74,9 +74,9 @@ Below is the contents of a sample input file for simulating a mixture of tri-val
 ```
 Currently, the following interactions are implemented
 
-- `GaussianPatchyDisc` -- It is described in the [reference](https://arxiv.org/abs/1607.06626).
-- `GaussianPatchyDiscHR` -- Same as the `GaussianPatchyDisc`, but with a hard core repulsion when $r_{ij} \lt \sigma_{ij}$.
-- `GaussianPatchyDiscHRSW` -- Same as the `GaussianPatchyDiscHRSW`, but with a Square Well poential when  $r_{ij} \le {r_{cut}}_{ij}$.
+- `GaussianPatchyDisc` -- The model is described in this [reference](https://arxiv.org/abs/1607.06626).
+- `GaussianPatchyDiscHR` -- Same as the `GaussianPatchyDisc`, but with a hard core repulsion when particles overlap (i.e. when $r_{ij} \lt \sigma_{ij}$).
+- `GaussianPatchyDiscHRSW` -- Same as the `GaussianPatchyDiscHRSW`, but with a Square Well poential when  particles are withing the interaction range (i.e. when $r_{ij} \le {r_{cut}}_{ij}$).
 
 ## Visualisation
 The trajectory is saved in XYZ format. You can vissualise it in the visualaisation package of your choice. However, I recommend using [ovito](https://www.ovito.org/).

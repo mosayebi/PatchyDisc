@@ -72,7 +72,7 @@ Below is the contents of a sample input file for simulating a mixture of tri-val
     }
 }
 ```
-Currently the following interactions are implemented
+Currently, the following interactions are implemented
 
 - `GaussianPatchyDisc` -- It is described in the [reference](https://arxiv.org/abs/1607.06626).
 - `GaussianPatchyDiscHR` -- Same as the `GaussianPatchyDisc`, but with a hard core repulsion when $r_{ij} \lt \sigma_{ij}$.
@@ -83,7 +83,7 @@ The trajectory is saved in XYZ format. You can vissualise it in the visualaisati
 
 When importing the trajectory in ovito, please choose the follwing order for the column mappings: Particle type, Position X, Position Y, Orientation Z, Orientation W. You can then load particle shape STL files saved in the `UTILS/particle_shapes/` if you are simulating a standard patchy disc, or make your own particle shape using the python script provided.
 
-To load a particle shape in ovito under the "Data source" panel click on "Particle Types" and choose a particle type. The "Load shape..."  bottom can then be found in the bottom of the panel.
+To load a particle shape in ovito under the "Data source" panel click on "Particle Types" and choose a particle type. The "Load shape..."  button can then be found in the bottom of the panel.
 
 
 ![Binary mixture of patchy discs](mixture.gif)

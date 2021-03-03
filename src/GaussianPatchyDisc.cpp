@@ -82,6 +82,7 @@ GaussianPatchyDisc::GaussianPatchyDisc(
     // {
     //     expTable[i] = exp(-i*dx);
     // }
+    std::cout << "# Initialised GaussianPatchyDisc." << std::endl;
 }
 
 double GaussianPatchyDisc::computePairEnergy(unsigned int particle1, const double* position1,

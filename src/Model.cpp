@@ -84,7 +84,7 @@ double Model::computeEnergy(unsigned int particle, const double* position)
 #endif
 
                 // Early exit test for hard core overlaps and large finite energy repulsions.
-                if (energy > 1e6) return INF;
+                if (energy > 1e8) return INF;
             }
         }
     }

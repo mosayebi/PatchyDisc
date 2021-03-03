@@ -60,7 +60,7 @@ long long int curr_step = 0;
 bool restart_step_counter=true;
 
 std::string interaction = "GaussainPatchyDisc";
-bool hasFiniteRepulsion = true;
+bool hasFiniteRepulsion;
 
 unsigned int seed = std::random_device{}();
 

@@ -63,7 +63,9 @@ int main(int argc, char** argv){
 
     // Initialise the patchy disc model.
     GaussianPatchyDisc patchyDisc(box, particles, cells, top, maxInteractions, interactionEnergy, interactionRange);
-    // if (interaction == "GaussianPatchyc")
+    hasFiniteRepulsion = true;
+    if (interaction != "GaussianPatchyDisc") std::cout<< "# [ERROR] Currently, changing the interaction is not allowed from the input_file. Using the default GaussianPatchyDisc interaction." << std::endl;
+    // if (interaction == "GaussianPatchyDisc")
     // {
     //     patchyDisc = GaussianPatchyDisc(box, particles, cells, top, maxInteractions, interactionEnergy, interactionRange);
     //     hasFiniteRepulsion = true;
@@ -92,10 +94,12 @@ int main(int argc, char** argv){
     {
         //Generate a random particle configuration.
         initialise.random(top, particles, cells, box, rng, false);
+        std::cout<< "# Random starting configuration is generated."<< std::endl;
     }
     else if (init_mode == "from_init_conf")
     {
         loadInitialConfiguration(init_conf, box, particles, cells);
+        std::cout<< "# Starting configuration is loaded from '"<< last_conf<<"'. Setting current step to "<< starting_step <<"."<< std::endl;
     }
 
     // // For debug
@@ -154,17 +158,19 @@ int main(int argc, char** argv){
     // Initialise single particle move object.
     SingleParticleMove MC(rng, &patchyDisc, 0.2, 0.1, 0.5, false);
 
-    // append init_conf details depending on restart_step_counter
+    // Initialisation depending on the restart_step_counter
     if (restart_step_counter)
     {
         starting_step = 0;
         bool clearFile = true;
+        std::cout<< "# Resetting the step counter to zero. Owerwiting '"<< trajectory << "' and '"<< log_file<<"'." << std::endl;
         io.appendXyzTrajectory(trajectory, starting_step, box, particles, clearFile, true);
         io.appendLog(log_file, starting_step, patchyDisc.getEnergy(), clearFile);
     }
     else
     {
         bool clearFile = false;
+        std::cout<< "# Resuming the simulation; Appending to '"<< trajectory << "' and '"<< log_file<<"'."<< std::endl;
         if (starting_step % output_every == 0)
         {
             io.appendXyzTrajectory(trajectory, starting_step, box, particles, clearFile, true);
@@ -175,10 +181,10 @@ int main(int argc, char** argv){
     // Execute the simulation.
     for(curr_step = starting_step; curr_step < sweeps && !stop; curr_step++)
     {
-        for (unsigned int i=0; i<nParticles/2; i++)
+        for (unsigned int i=0; i<nParticles; i++)
         {
             vmmc ++;
-            MC ++;
+            //MC ++;   // both moves cannot be used at the same time. BUG?
         }
         if(curr_step > 0 && (curr_step % (output_every)) == 0)
         {

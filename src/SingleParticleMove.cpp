@@ -14,6 +14,7 @@
   You should have received a copy of the GNU General Public License
   along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
+#include <iostream>
 
 #include "Box.h"
 #include "CellList.h"
@@ -45,6 +46,8 @@ SingleParticleMove::SingleParticleMove(
 
     // Ignore rotations if potential is isotropic.
     if (isIsotropic) probTranslate = 1.0;
+    std::cout << "# Initialised MC" << std::endl;
+
 }
 
 void SingleParticleMove::step(const int nSteps)

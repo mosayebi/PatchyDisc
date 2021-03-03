@@ -74,7 +74,7 @@ public:
         \return
             The pair energy between particles 1 and 2.
      */
-    double computePairEnergy(unsigned int, const double*, const double*, unsigned int, const double*, const double*);
+    virtual double computePairEnergy(unsigned int, const double*, const double*, unsigned int, const double*, const double*);
 
     //! Determine the interactions for a given particle.
     /*! \param particle
@@ -96,7 +96,7 @@ public:
 
     Top& top;                           //!< A reference to the Top.
 
-private:
+//private:
     //double patchSeparation;         //!< The angle between patches in radians.
     //std::vector<std::vector<double>> cosTheta;   //!< Lookup table for cosine rotation matrix components.
     //std::vector<std::vector<double>> sinTheta;   //!< Lookup table for sine rotation matrix components.

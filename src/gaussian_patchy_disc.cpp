@@ -184,7 +184,7 @@ int main(int argc, char** argv){
         for (unsigned int i=0; i<nParticles; i++)
         {
             vmmc ++;
-            //MC ++;   // both moves cannot be used at the same time. BUG?
+            MC ++;   // both moves cannot be used at the same time. BUG?
         }
         if(curr_step > 0 && (curr_step % (output_every)) == 0)
         {

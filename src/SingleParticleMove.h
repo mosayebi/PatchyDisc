@@ -100,7 +100,7 @@ public:
     //! Reset statistics.
     void reset();
 
-    MersenneTwister rng;                        //!< Random number generator.
+    MersenneTwister& rng;                        //!< Random number generator.
 
 private:
     MoveParams moveParams;                      //!< Parameters for the trial move.

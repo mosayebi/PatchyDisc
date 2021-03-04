@@ -148,7 +148,7 @@ public:
     /*! \return
             The average pair energy.
      */
-    double getEnergy();
+    virtual double getEnergy();
 
     Box& box;                           //!< A reference to the simulation box.
     std::vector<Particle>& particles;   //!< A reference to the particle list.

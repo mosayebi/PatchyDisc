@@ -220,3 +220,63 @@ unsigned int GaussianPatchyDisc::computeInteractions(unsigned int particle,
 
     return nInteractions;
 }
+
+
+// unsigned int GaussianPatchyDisc::computePatchyBonds(unsigned int particle,
+//     const double* position, const double* orientation, unsigned int* interactions)
+// {
+//     // This is similar to computeInteractions, but returns a vector with all bonded patchy particles
+
+//     // Interaction counter.
+//     unsigned int nInteractions = 0;
+
+//     // Check all neighbouring cells including same cell.
+//     for (unsigned int i=0;i<cells.getNeighbours();i++)
+//     {
+//         // Cell index.
+//         unsigned int cell = cells[particles[particle].cell].neighbours[i];
+
+//         // Check all particles within cell.
+//         for (unsigned int j=0;j<cells[cell].tally;j++)
+//         {
+//             // Index of neighbouring particle.
+//             unsigned int neighbour = cells[cell].particles[j];
+
+//             // Make sure the particles are different.
+//             if (neighbour != particle)
+//             {
+//                 std::vector<double> sep(box.dimension);
+
+//                 // Compute separation.
+//                 for (unsigned int k=0;k<box.dimension;k++)
+//                     sep[k] = position[k] - particles[neighbour].position[k];
+
+//                 // Enforce minimum image.
+//                 box.minimumImage(sep);
+
+//                 double normSqd = 0;
+
+//                 // Calculate squared norm of vector.
+//                 for (unsigned int k=0;k<box.dimension;k++)
+//                     normSqd += sep[k]*sep[k];
+
+//                 // Particles interact.
+
+//                 if (normSqd < rcut_sq[idx2type[particle]][idx2type[neighbour]])
+//                 {
+//                     if (nInteractions == maxInteractions)
+//                     {
+//                         std::cerr << "[ERROR] Model: Maximum number of interactions exceeded!\n";
+//                         exit(EXIT_FAILURE);
+//                     }
+
+//                     interactions[nInteractions] = neighbour;
+//                     nInteractions++;
+//                 }
+//             }
+//         }
+//     }
+
+//     return nInteractions;
+// }
+

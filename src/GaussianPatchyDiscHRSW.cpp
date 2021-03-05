@@ -25,7 +25,7 @@ GaussianPatchyDiscHRSW::GaussianPatchyDiscHRSW(
     double interactionRange_) :
     GaussianPatchyDisc(box_, particles_, cells_, top_, maxInteractions_, interactionEnergy_, interactionRange_)
 {
-        std::cout << "# Initialised GaussianPatchyDiscHRSW interaction from GaussianPatchyDisc." << std::endl;
+        std::cout << "# Initialised GaussianPatchyDiscHRSW interaction; Derived from GaussianPatchyDisc" << std::endl;
 }
 
 double GaussianPatchyDiscHRSW::computePairEnergy(unsigned int particle1, const double* position1,

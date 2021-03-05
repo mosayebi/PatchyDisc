@@ -20,7 +20,7 @@ void gbl_terminate(int arg) {
 
 int main(int argc, char** argv){
     std::cout << "# PatchyDisc compiled on " << COMPILED_ON << std::endl;
-    std::cout << "# GIT commit hash is " << GIT_COMMIT_HASH << std::endl << std::endl;
+    std::cout << "# GIT information: branch '"<< GIT_BRANCH <<"', commit hash '" << GIT_COMMIT_HASH << "'" <<std::endl << std::endl;
 	if(argc == 1){
         fprintf(stderr, "Usage: %s input.json\n", argv[0]);
         exit(EXIT_FAILURE);

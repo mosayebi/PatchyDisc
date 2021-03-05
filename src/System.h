@@ -28,6 +28,9 @@
 #ifndef GIT_COMMIT_HASH
 #define GIT_COMMIT_HASH "?"
 #endif
+#ifndef GIT_BRANCH
+#define GIT_BRANCH "?"
+#endif
 #ifndef COMPILED_ON
 #define COMPILED_ON "?"
 #endif

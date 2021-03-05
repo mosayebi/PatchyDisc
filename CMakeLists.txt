@@ -41,7 +41,7 @@ target_compile_options(PatchyDisc PUBLIC -std=c++1y -Wall -Wno-float-conversion 
 
 
 
-# to include the GIT version in the log file
+# to include the GIT version and date
 # Get the current working branch
 execute_process(
     COMMAND git rev-parse --abbrev-ref HEAD
@@ -56,19 +56,19 @@ execute_process(
     OUTPUT_VARIABLE GIT_COMMIT_HASH
     OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-target_compile_definitions(${PROJECT_NAME} PRIVATE
-    "-DGIT_COMMIT_HASH=\"${GIT_COMMIT_HASH}\"")
-
-
 # Get the date
 execute_process(COMMAND date
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     OUTPUT_VARIABLE COMPILED_ON
     OUTPUT_STRIP_TRAILING_WHITESPACE)
 
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    "-DGIT_COMMIT_HASH=\"${GIT_COMMIT_HASH}\"")
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    "-DGIT_BRANCH=\"${GIT_BRANCH}\"")
 target_compile_definitions(${PROJECT_NAME} PRIVATE
     "-DCOMPILED_ON=\"${COMPILED_ON}\"")
-
 
 
 

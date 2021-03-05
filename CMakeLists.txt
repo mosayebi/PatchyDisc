@@ -40,6 +40,38 @@ target_compile_options(PatchyDisc PUBLIC -std=c++1y -Wall -Wno-float-conversion 
 #file(COPY ${data} DESTINATION resources)
 
 
+
+# to include the GIT version in the log file
+# Get the current working branch
+execute_process(
+    COMMAND git rev-parse --abbrev-ref HEAD
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    OUTPUT_VARIABLE GIT_BRANCH
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+# Get the latest commit hash
+execute_process(
+    COMMAND git rev-parse HEAD
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    OUTPUT_VARIABLE GIT_COMMIT_HASH
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    "-DGIT_COMMIT_HASH=\"${GIT_COMMIT_HASH}\"")
+
+
+# Get the date
+execute_process(COMMAND date
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    OUTPUT_VARIABLE COMPILED_ON
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    "-DCOMPILED_ON=\"${COMPILED_ON}\"")
+
+
+
+
 ###############################################################################
 ## dependencies ###############################################################
 ###############################################################################
@@ -48,3 +80,6 @@ target_compile_options(PatchyDisc PUBLIC -std=c++1y -Wall -Wno-float-conversion 
 # that we need to link to
 find_package(nlohmann_json 3.2.0 REQUIRED)
 target_link_libraries(PatchyDisc PRIVATE nlohmann_json::nlohmann_json)
+
+
+

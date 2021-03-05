@@ -8,7 +8,6 @@
 #include <iostream>
 #include "System.h"
 
-
 void gbl_terminate(int arg) {
 	/**
 	 * The next time the signal is intercepted, the default handler will be invoked
@@ -20,6 +19,8 @@ void gbl_terminate(int arg) {
 }
 
 int main(int argc, char** argv){
+    std::cout << "# PatchyDisc compiled on " << COMPILED_ON << std::endl;
+    std::cout << "# GIT commit hash is " << GIT_COMMIT_HASH << std::endl << std::endl;
 	if(argc == 1){
         fprintf(stderr, "Usage: %s input.json\n", argv[0]);
         exit(EXIT_FAILURE);
@@ -44,7 +45,9 @@ int main(int argc, char** argv){
     bool isIsotropic[nParticles];                   // whether the potential of each particle is isotropic
     particles.resize(nParticles);                   // Resize particle container.
     Box box(boxSizeVec);
-    printf("# Number density is %5.4f\n", nParticles/box.Volume);
+    printf("# Number of species %7d\n", nTypes);
+    printf("# Number of particles %7d\n", nParticles);
+    printf("# Number density is %7.4f\n", nParticles/box.Volume);
 
     // Initialise cell list.
     CellList cells;
@@ -63,7 +66,7 @@ int main(int argc, char** argv){
 
     // Initialise the patchy disc model.
     GaussianPatchyDisc patchyDisc(box, particles, cells, top, maxInteractions, interactionEnergy, interactionRange);
-    hasFiniteRepulsion = false;
+    hasFiniteRepulsion = true;
     if (interaction != "GaussianPatchyDisc") std::cout<< "# [NotImplementedError] Currently, changing the interaction is not allowed from the input_file. You can do so by editing the source code.\n# Using the default GaussianPatchyDisc interaction" << std::endl;
     // if (interaction == "GaussianPatchyDisc")
     // {
@@ -162,14 +165,14 @@ int main(int argc, char** argv){
     {
         starting_step = 0;
         bool clearFile = true;
-        std::cout<< "# Resetting the step counter to zero. Owerwiting '"<< trajectory << "' and '"<< log_file<<"'." << std::endl;
+        std::cout<< "# Resetting the step counter to zero. Owerwiting '"<< trajectory << "' and '"<< log_file<<"'.\n" << std::endl;
         io.appendXyzTrajectory(trajectory, starting_step, box, particles, clearFile, true);
         io.appendLog(log_file, starting_step, patchyDisc.getEnergy(), clearFile);
     }
     else
     {
         bool clearFile = false;
-        std::cout<< "# Resuming the simulation; Appending to '"<< trajectory << "' and '"<< log_file<<"'."<< std::endl;
+        std::cout<< "# Resuming the simulation; Appending to '"<< trajectory << "' and '"<< log_file<<"'.\n"<< std::endl;
         if (starting_step % output_every == 0)
         {
             io.appendXyzTrajectory(trajectory, starting_step, box, particles, clearFile, true);
@@ -191,7 +194,7 @@ int main(int argc, char** argv){
             io.appendLog(log_file, curr_step, patchyDisc.getEnergy(), false);
         }
     }
-    printf("Writing the last conf to `%s`.", last_conf.c_str());
+    printf("\nWriting the last conf to `%s`.", last_conf.c_str());
     io.appendXyzTrajectory(last_conf, curr_step, box, particles, true, true);
     std::cout << "\nComplete!\n";
 

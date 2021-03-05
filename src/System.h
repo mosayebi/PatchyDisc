@@ -25,6 +25,13 @@
     #define M_PI 3.1415926535897932384626433832795
 #endif
 
+#ifndef GIT_COMMIT_HASH
+#define GIT_COMMIT_HASH "?"
+#endif
+#ifndef COMPILED_ON
+#define COMPILED_ON "?"
+#endif
+
 
 // FORWARD DECLARATIONS
 

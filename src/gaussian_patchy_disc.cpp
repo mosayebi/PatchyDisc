@@ -8,20 +8,13 @@
 #include <iostream>
 #include "System.h"
 
-void gbl_terminate(int arg) {
-	/**
-	 * The next time the signal is intercepted, the default handler will be invoked
-	 * in order to avoid making the program unkillable.
-	 */
-	signal(arg, SIG_DFL);
-	fprintf(stderr, "# Caught SIGNAL %d; setting stop = 1\n", arg);
-	stop = 1;
-}
 
-int main(int argc, char** argv){
+int main(int argc, char** argv)
+{
     std::cout << "# PatchyDisc compiled on " << COMPILED_ON << std::endl;
     std::cout << "# GIT information: branch '"<< GIT_BRANCH <<"', commit hash '" << GIT_COMMIT_HASH << "'" <<std::endl << std::endl;
-	if(argc == 1){
+
+    if(argc == 1){
         fprintf(stderr, "Usage: %s input.json\n", argv[0]);
         exit(EXIT_FAILURE);
     }
@@ -34,12 +27,9 @@ int main(int argc, char** argv){
 	signal(SIGINT, gbl_terminate);
 	signal(SIGUSR2, gbl_terminate);
 
-	//Load the input file and Initialise
+	//Load the input file and Initialise (inp is a json object)
     inp = ReadJsonFromFile(inputFileName);
-    parseInitialisationBlock();
-    parseTopologyBlock();
-    parseSimulationParamBlock();
-
+    parseInputFile();
 
     std::vector<Particle> particles(nParticles);    // particle container
     bool isIsotropic[nParticles];                   // whether the potential of each particle is isotropic
@@ -90,11 +80,11 @@ int main(int argc, char** argv){
     // }
 
 
-    // Initialise particle initialisation object.
-    Initialise initialise;
 
     if (init_mode == "from_random_conf")
     {
+        // Initialise particle initialisation object.
+        Initialise initialise;
         //Generate a random particle configuration.
         initialise.random(top, particles, cells, box, rng, false);
     }

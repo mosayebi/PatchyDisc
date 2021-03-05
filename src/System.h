@@ -44,6 +44,15 @@ struct Particle;
 
 
 int stop = 0;
+void gbl_terminate(int arg) {
+	/**
+	 * The next time the signal is intercepted, the default handler will be invoked
+	 * in order to avoid making the program unkillable.
+	 */
+	signal(arg, SIG_DFL);
+	fprintf(stderr, "# Caught SIGNAL %d; setting stop = 1\n", arg);
+	stop = 1;
+}
 
 // Simulation parameters.
 unsigned int dimension = 2;                     // dimension of simulation box
@@ -69,7 +78,7 @@ long long int starting_step = 0;
 long long int curr_step = 0;
 bool restart_step_counter=true;
 
-std::string interaction = "GaussainPatchyDisc";
+std::string interaction = "GaussianPatchyDisc";
 bool hasFiniteRepulsion;
 
 unsigned int seed = std::random_device{}();
@@ -257,10 +266,16 @@ void parseSimulationParamBlock()
     if (inp[name].contains("trajectory")) trajectory.assign(inp[name]["trajectory"]);
     if (inp[name].contains("log_file")) log_file.assign(inp[name]["log_file"]);
     if (inp[name].contains("seed")) seed = inp[name]["seed"];
-    if (inp.contains("interaction")) interaction.assign(inp["interaction"]);
+    if (inp.contains("interaction")) interaction.assign(inp[name]["interaction"]);
     sweeps = inp[name]["sweeps"];
 }
 
 
+void parseInputFile()
+{
+    parseInitialisationBlock();
+    parseTopologyBlock();
+    parseSimulationParamBlock();
+}
 
 #endif

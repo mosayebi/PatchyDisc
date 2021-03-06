@@ -48,6 +48,8 @@ GaussianPatchyDisc::GaussianPatchyDisc(
     exit(EXIT_FAILURE);
 #endif
 
+    hasFiniteRepulsion = true;
+
     // Check dimensionality.
     if (box.dimension != 2)
     {
@@ -59,6 +61,8 @@ GaussianPatchyDisc::GaussianPatchyDisc(
     for (unsigned int i=0;i<particles.size();i++)
     {
         idx2type.push_back(particles[i].type);
+        idx2ifGhost.push_back(particles[i].ghost);
+        //std::cout << particles[i].ghost << " ";
     }
     rcut_sq.resize(top.nTypes, std::vector<double>(top.nTypes));
     lj_shift.resize(top.nTypes, std::vector<double>(top.nTypes));
@@ -88,6 +92,9 @@ GaussianPatchyDisc::GaussianPatchyDisc(
 double GaussianPatchyDisc::computePairEnergy(unsigned int particle1, const double* position1,
     const double* orientation1, unsigned int particle2, const double* position2, const double* orientation2)
 {
+    // Early exit if either of particles is a ghost
+    if ( idx2ifGhost[particle1] || idx2ifGhost[particle2] ) return 0;
+
     unsigned int t1 = idx2type[particle1];
     unsigned int t2 = idx2type[particle2];
 
@@ -113,7 +120,6 @@ double GaussianPatchyDisc::computePairEnergy(unsigned int particle1, const doubl
         double r6Inv = r2Inv*r2Inv*r2Inv;
         energyLJ = 4.0*top.epsilon[t1][t2]*((r6Inv*r6Inv) - r6Inv) + lj_shift[t1][t2];
         return energyLJ;
-        // return INF;
     }
     else if (normSqd < rcut_sq[t1][t2])
     {
@@ -168,6 +174,9 @@ double GaussianPatchyDisc::computePairEnergy(unsigned int particle1, const doubl
 unsigned int GaussianPatchyDisc::computeInteractions(unsigned int particle,
     const double* position, const double* orientation, unsigned int* interactions)
 {
+    // Early exit if the particle is a ghost one
+    if (idx2ifGhost[particle]) return 0;
+
     // Interaction counter.
     unsigned int nInteractions = 0;
 

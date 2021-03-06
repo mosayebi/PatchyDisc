@@ -25,12 +25,16 @@ GaussianPatchyDiscHRSW::GaussianPatchyDiscHRSW(
     double interactionRange_) :
     GaussianPatchyDisc(box_, particles_, cells_, top_, maxInteractions_, interactionEnergy_, interactionRange_)
 {
-        std::cout << "# Initialised GaussianPatchyDiscHRSW interaction; Derived from GaussianPatchyDisc" << std::endl;
+    hasFiniteRepulsion = false;
+    std::cout << "# Initialised GaussianPatchyDiscHRSW interaction; Derived from GaussianPatchyDisc" << std::endl;
 }
 
 double GaussianPatchyDiscHRSW::computePairEnergy(unsigned int particle1, const double* position1,
     const double* orientation1, unsigned int particle2, const double* position2, const double* orientation2)
 {
+    // Early exis if either of particles is a ghost
+    if ( idx2ifGhost[particle1] || idx2ifGhost[particle2] ) return INF;
+
     unsigned int t1 = idx2type[particle1];
     unsigned int t2 = idx2type[particle2];
 

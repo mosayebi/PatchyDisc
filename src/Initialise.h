@@ -52,7 +52,7 @@ public:
         \param isSpherocylinder
             Whether particles are confined to a sphereocyliner.
      */
-    void random(Top&, std::vector<Particle>&, CellList&, Box&, MersenneTwister&, bool);
+    void random(unsigned int, unsigned int, Top&, std::vector<Particle>&, CellList&, Box&, MersenneTwister&, bool);
 
     //! Check whether particle is within spherocylinder.
     /*! \param index

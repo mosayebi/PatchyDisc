@@ -94,15 +94,11 @@ public:
      */
     unsigned int computeInteractions(unsigned int, const double*, const double*, unsigned int*);
 
+    bool hasFiniteRepulsion;
     Top& top;                           //!< A reference to the Top.
-
 //private:
-    //double patchSeparation;         //!< The angle between patches in radians.
-    //std::vector<std::vector<double>> cosTheta;   //!< Lookup table for cosine rotation matrix components.
-    //std::vector<std::vector<double>> sinTheta;   //!< Lookup table for sine rotation matrix components.
     std::vector<unsigned int> idx2type;
-    //std::vector<std::vector<double>> cosPatchAngles; //this is to avoid calling expensive cos function
-    //std::vector<std::vector<double>> sinPatchAngles; //this is to avoid calling expensive sin function
+    std::vector<unsigned int> idx2ifGhost;
     std::vector<std::vector<double>> rcut_sq;
     std::vector<std::vector<double>> lj_shift;
     std::vector<std::vector<double>> twoSigmapSq;

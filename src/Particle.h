@@ -33,6 +33,7 @@ public:
 
     unsigned int index;                 //!< Particle index.
     unsigned int type;                  //!< Particle type.
+    bool ghost = false;                 //!< Particle ghost flag.
     std::vector<double> position;       //!< The x,y,z coordinates of the particle.
     std::vector<double> orientation;    //!< The orientation of the particle (unit vector).
 

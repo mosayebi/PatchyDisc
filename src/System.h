@@ -60,6 +60,10 @@ double interactionRange = 1.0;                  // interaction range. #diameter 
 double interactionEnergy = 1.0;                 // pair interaction energy scale (in units of kBT)
 unsigned int maxInteractions = 36;              // maximum number of interactions per particle
 
+bool ifGrandCanonical = false;
+unsigned int maxParticles = 10000;
+std::vector<double> activity;
+
 
 nlohmann::json inp;                             // inputfile json
 unsigned int nParticles;
@@ -79,7 +83,6 @@ long long int curr_step = 0;
 bool restart_step_counter=true;
 
 std::string interaction = "GaussianPatchyDisc";
-bool hasFiniteRepulsion;
 
 unsigned int seed = std::random_device{}();
 
@@ -181,6 +184,7 @@ void loadInitialConfiguration(std::string fileName, Box& box, std::vector<Partic
     }
     // Close file stream.
     dataFile.close();
+    std::cout<< "# Starting configuration is loaded from '"<<fileName<<"'. Setting current step to "<< starting_step <<"."<< std::endl;
 }
 
 
@@ -220,9 +224,18 @@ void parseInitialisationBlock()
     }
     else
     {
-        std::cerr << "[ERROR] Initialisation mode is not defined!\n";
+        std::cerr << "# [ERROR] Initialisation mode is not defined!\n";
         exit(EXIT_FAILURE);
     }
+
+    // Shared for all modes of initialisations
+    // Resize activity vector.
+    activity.resize(nTypes);
+    // setting the maxParticles to nParticles. This can be changed later in the GC section.
+    maxParticles = nParticles;
+    // Print info
+    printf("# Number of particles %7d\n", nParticles);
+    printf("# Number of species %7d\n", nTypes);
 }
 
 void parseTopologyBlock()
@@ -268,6 +281,35 @@ void parseSimulationParamBlock()
     if (inp[name].contains("seed")) seed = inp[name]["seed"];
     if (inp.contains("interaction")) interaction.assign(inp[name]["interaction"]);
     sweeps = inp[name]["sweeps"];
+
+    if (inp[name].contains("perform grand canonical moves")) ifGrandCanonical = inp[name]["perform grand canonical moves"];
+    if (ifGrandCanonical)
+    {
+        if (inp[name].contains("grand cananoical parameters"))
+        {
+            maxParticles = inp[name]["grand cananoical parameters"]["maximum number of particles"];
+            for (unsigned int i=0; i<nTypes; i++)
+            {
+                unsigned int t = inp[name]["grand cananoical parameters"]["activity"][i]["type"];
+                activity[t] =  inp[name]["grand cananoical parameters"]["activity"][i]["activity"];
+            }
+        }
+        else
+        {
+            std::cout << "# [ERROR] Could not find the 'grand cananoical parameters' in the input file." << std::endl;
+            exit(EXIT_FAILURE);
+        }
+    // log GC info
+    printf ("# Performing Grand Canonical sampling with activity value(s) of {z_%d:%g", 0, activity[0]);
+    for (unsigned int i=1; i<nTypes; i++) printf (", z_%d:%g", i, activity[i]);
+    printf("}\n");
+    printf("# Maximum number of particles is set to %d\n", maxParticles);
+    if (maxParticles<nParticles)
+    {
+        printf ("# [ERROR] Maximum number of particles is smaller than the initial number of particles. (%d < %d)!\n", maxParticles, nParticles);
+        exit(EXIT_FAILURE);
+    }
+    }
 }
 
 

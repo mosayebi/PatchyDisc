@@ -31,13 +31,11 @@ int main(int argc, char** argv)
     inp = ReadJsonFromFile(inputFileName);
     parseInputFile();
 
-    std::vector<Particle> particles(nParticles);    // particle container
-    bool isIsotropic[nParticles];                   // whether the potential of each particle is isotropic
-    particles.resize(nParticles);                   // Resize particle container.
+    std::vector<Particle> particles(maxParticles);    // particle container
+    bool isIsotropic[maxParticles];                   // whether the potential of each particle is isotropic
+    particles.resize(maxParticles);                   // Resize particle container.
     Box box(boxSizeVec);
-    printf("# Number of species %7d\n", nTypes);
-    printf("# Number of particles %7d\n", nParticles);
-    printf("# Number density is %7.4f\n", nParticles/box.Volume);
+    printf("# Initial number density is %7.4f\n", nParticles/box.Volume);
 
     // Initialise cell list.
     CellList cells;
@@ -54,9 +52,21 @@ int main(int argc, char** argv)
     // Create VMD script.
     io.vmdScript(boxSizeVec);
 
+    if (init_mode == "from_random_conf")
+    {
+        // Initialise particle initialisation object.
+        Initialise initialise;
+        //Generate a random particle configuration.
+        initialise.random(nParticles, maxParticles, top, particles, cells, box, rng, false);
+    }
+    else if (init_mode == "from_init_conf")
+    {
+        loadInitialConfiguration(init_conf, box, particles, cells);
+    }
+
+
     // Initialise the patchy disc model.
     GaussianPatchyDisc patchyDisc(box, particles, cells, top, maxInteractions, interactionEnergy, interactionRange);
-    hasFiniteRepulsion = true;
     if (interaction != "GaussianPatchyDisc") std::cout<< "# [NotImplementedError] Currently, changing the interaction is not allowed from the input_file. You can do so by editing the source code.\n# Using the default GaussianPatchyDisc interaction" << std::endl;
     // if (interaction == "GaussianPatchyDisc")
     // {
@@ -79,21 +89,6 @@ int main(int argc, char** argv)
     //     exit(EXIT_FAILURE);
     // }
 
-
-
-    if (init_mode == "from_random_conf")
-    {
-        // Initialise particle initialisation object.
-        Initialise initialise;
-        //Generate a random particle configuration.
-        initialise.random(top, particles, cells, box, rng, false);
-    }
-    else if (init_mode == "from_init_conf")
-    {
-        loadInitialConfiguration(init_conf, box, particles, cells);
-        std::cout<< "# Starting configuration is loaded from '"<< last_conf<<"'. Setting current step to "<< starting_step <<"."<< std::endl;
-    }
-
     // // For debug
     // for (double t=0; t<=360; t+=1)
     // {
@@ -107,10 +102,10 @@ int main(int argc, char** argv)
     // exit(1);
 
     // Initialise data structures needed by the VMMC class.
-    double coordinates[dimension*nParticles];
-    double orientations[dimension*nParticles];
+    double coordinates[dimension*maxParticles];
+    double orientations[dimension*maxParticles];
     // Copy particle coordinates and orientations into C-style arrays.
-    for (unsigned int i=0;i<nParticles;i++)
+    for (unsigned int i=0;i<maxParticles;i++)
     {
         for (unsigned int j=0;j<dimension;j++)
         {
@@ -145,8 +140,8 @@ int main(int argc, char** argv)
 #endif
 
     // Initialise VMMC object.
-    vmmc::VMMC vmmc(rng, nParticles, dimension, coordinates, orientations,
-        0.15, 0.2, 0.5, 0.5, maxInteractions, &boxSizeVec[0], isIsotropic, hasFiniteRepulsion, callbacks);
+    vmmc::VMMC vmmc(rng, maxParticles, dimension, coordinates, orientations,
+        0.15, 0.2, 0.5, 0.5, maxInteractions, &boxSizeVec[0], isIsotropic, patchyDisc.hasFiniteRepulsion, callbacks);
     // Initialise single particle move object.
     // SingleParticleMove MC(rng, &patchyDisc, 0.2, 0.1, 0.5, false);
 

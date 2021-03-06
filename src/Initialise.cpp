@@ -31,9 +31,9 @@ Initialise::Initialise()
 {
 }
 
-void Initialise::random(Top& top, std::vector<Particle>& particles, CellList& cells, Box& box, MersenneTwister& rng, bool isSpherocylinder)
+void Initialise::random(unsigned int nParticles, unsigned int maxParticles, Top& top, std::vector<Particle>& particles, CellList& cells, Box& box, MersenneTwister& rng, bool isSpherocylinder)
 {
-    std::cout<< "# Geneating random starting configuration..."<< std::endl;
+    std::cout<< "# Generating random starting configuration..."<< std::endl;
 
     if (isSpherocylinder && (box.dimension != 3)){
         std::cerr << "[ERROR] Initialise: Spherocylindrical boundary only valid for three dimensional simulation box!\n";
@@ -44,12 +44,14 @@ void Initialise::random(Top& top, std::vector<Particle>& particles, CellList& ce
     boxSize = box.boxSize;
     unsigned int sum = 0;
     sum = std::accumulate(top.Ni.begin(), top.Ni.end(), 0);
-
-    if (sum != particles.size()){
-        std::cerr << "[ERROR] Initialise: Invalid number of particles! ("<< particles.size() <<" != "<< sum << ")\n";
+    if (sum != nParticles){
+        std::cerr << "[ERROR] Initialise: Invalid number of particles! ("<< nParticles <<" != "<< sum << ")\n";
         exit(EXIT_FAILURE);
     }
-
+    if (maxParticles != particles.size()){
+        std::cerr << "[ERROR] Initialise: Invalid max number of particles! ("<< particles.size() <<" != "<< maxParticles << ")\n";
+        exit(EXIT_FAILURE);
+    }
     unsigned int idx=0;
     // Current number of attempted particle insertions.
     unsigned int nTrials = 0;
@@ -64,6 +66,8 @@ void Initialise::random(Top& top, std::vector<Particle>& particles, CellList& ce
 
             // Temporary vector.
             std::vector<double> vec(box.dimension);
+
+            particles[idx].ghost = false;
 
             // Set particle index.
             particles[idx].index = idx;
@@ -135,7 +139,36 @@ void Initialise::random(Top& top, std::vector<Particle>& particles, CellList& ce
             idx += 1;
         }
     }
+    // create all ghost particles
+    for (unsigned int i=nParticles; i<maxParticles; i++)
+    {
+        std::vector<double> vec(box.dimension);
+        // Generate a random position.
+        for (unsigned int j=0;j<box.dimension;j++)
+            vec[j] = rng()*box.boxSize[j];
+        particles[idx].position = vec;
+
+        // Generate a random orientation.
+        for (unsigned int j=0;j<box.dimension;j++)
+            vec[j] = rng.normal();
+        double norm = 0;
+        for (unsigned int j=0;j<box.dimension;j++)
+            norm += vec[j]*vec[j];
+        norm = sqrt(norm);
+        for (unsigned int j=0;j<box.dimension;j++)
+            vec[j] /= norm;
+        particles[idx].orientation = vec;
+        particles[idx].cell = cells.getCell(particles[idx]);
+        particles[idx].type = 0;
+        particles[idx].ghost = true;
+        particles[idx].index = true;
+        // Update cell list.
+        cells.initCell(particles[idx].cell, particles[idx]);
+        idx += 1;
+    }
+
 std::cout<< "# Random starting configuration is generated after "<< nTrials <<" insertion trials."<< std::endl;
+std::cout<< "# "<< maxParticles - nParticles << " ghost particles are added to the simulation box"<< std::endl;
 }
 
 #ifndef ISOTROPIC

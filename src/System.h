@@ -20,6 +20,8 @@
 
 #include <random>
 #include <vector>
+#include <csignal>
+
 
 #ifndef M_PI
     #define M_PI 3.1415926535897932384626433832795
@@ -215,12 +217,12 @@ void parseInitialisationBlock()
             restart_step_counter = inp[name][init_mode]["restart_step_counter"];
             getParamsFromInitConf(init_conf);
             top.setSize(nTypes);
-            // do not forget to initialise top.Ni when reading the init_conf. 
+            // do not forget to initialise top.Ni when reading the init_conf.
         }
     }
     else
     {
-        std::cerr << "[ERROR] Initialisation mode is not defined!\n";
+        std::cerr << "[ERROR] Initialisation mode is not defined! ("<<init_mode<<")\n";
         exit(EXIT_FAILURE);
     }
 }

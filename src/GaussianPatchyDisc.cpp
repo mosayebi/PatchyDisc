@@ -152,6 +152,8 @@ double GaussianPatchyDisc::computePairEnergy(unsigned int particle1, const doubl
             p2Angle += top.patchAngles[t2][j];
             p2Angle = p2Angle - r21Angle;
             while (p1Angle > M_PI) p1Angle -= 2*M_PI;
+            while (p1Angle < -M_PI) p1Angle += 2*M_PI;
+            while (p2Angle > M_PI) p2Angle -= 2*M_PI;
             while (p2Angle < -M_PI) p2Angle += 2*M_PI;
 
             modulation = (p1Angle*p1Angle)/twoSigmapSq[t1][t2] + (p2Angle*p2Angle)/twoSigmapSq[t1][t2];

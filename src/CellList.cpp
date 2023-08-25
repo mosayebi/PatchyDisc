@@ -18,7 +18,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
-
+#include <csignal>
 #include "CellList.h"
 #include "Particle.h"
 
@@ -98,7 +98,7 @@ void CellList::initialise(const std::vector<double>& boxSize, double range)
     else maxParticles = (cellSpacing[0]*cellSpacing[1]) / (M_PI*0.5*0.5);
 
     // Add a buffer, e.g. if particles can overlap.
-    maxParticles += 10;
+    maxParticles += 30;
 
     nCells = cellsPerAxis[0]*cellsPerAxis[1];
     if (dimension == 3) nCells *= cellsPerAxis[2];

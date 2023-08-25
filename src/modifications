@@ -1,0 +1,1 @@
+in System.h I introduced a new file init_patch_conf and I removed the getParameters parts cause we do not need them anymore. maybe in the loadpatchstates add Top as input

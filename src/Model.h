@@ -27,6 +27,8 @@
 class  Box;
 class  CellList;
 struct Particle;
+// FORWARD DECLARATIONS
+class Top;
 
 // Global infinity constant for hard core repulsions.
 extern double INF;
@@ -55,10 +57,13 @@ public:
         \param interactionRange_
             The interaction range (in units of the particle diameter).
      */
-    Model(Box&, std::vector<Particle>&, CellList&, unsigned int, double, double);
+    Model(Box&, std::vector<Particle>&, CellList&, Top&, unsigned int, double, double);
 
     virtual ~Model() = default;
-
+    Box& box;                           //!< A reference to the simulation box.
+    std::vector<Particle>& particles;   //!< A reference to the particle list.
+    CellList& cells;                    //!< A reference to the cell list.
+    Top& top;                           //!< A reference to the topology
     //! Calculate the total interaction energy felt by a particle.
     /*! \param index
             The particle index.
@@ -68,15 +73,18 @@ public:
 
         \param orientation
             The orientation vector of the first particle.
-
+        \param status
+            The status vector of the patches
         \return
             The total interaction energy.
      */
 #ifndef ISOTROPIC
-    virtual double computeEnergy(unsigned int, const double*, const double*);
+    virtual double computeEnergy(unsigned int, const double*, const double*, const unsigned int*);
 #else
     virtual double computeEnergy(unsigned int, const double*);
 #endif
+
+
 
     //! Calculate the pair energy between two particles.
     /*! \param particle1
@@ -88,6 +96,9 @@ public:
         \param orientation1
             The orientation vector of the first particle.
 
+        \param status1
+            The status vector of the patches in particle 1
+
         \param particle2
             The index of the second particle.
 
@@ -97,11 +108,13 @@ public:
         \param orientation2
             The orientation vector of the second particle.
 
+        \param status2
+            The status vector of the patches in particle 2
         \return
             The pair energy between particles 1 and 2.
      */
 #ifndef ISOTROPIC
-    virtual double computePairEnergy(unsigned int, const double*, const double*, unsigned int, const double*, const double*);
+    virtual double computePairEnergy(unsigned int, const double*, const double*, const unsigned int*, unsigned int, const double*, const double*, const unsigned int*);
 #else
     virtual double computePairEnergy(unsigned int, const double*, unsigned int, const double*);
 #endif
@@ -137,9 +150,12 @@ public:
 
         \param orientation
             The orientation of the particle following the virtual move.
+        
+        \param status
+            The status of the patches particle following the virtual move
     */
 #ifndef ISOTROPIC
-    virtual void applyPostMoveUpdates(unsigned int, const double*, const double*);
+    virtual void applyPostMoveUpdates(unsigned int, const double*, const double*, const unsigned int*);
 #else
     virtual void applyPostMoveUpdates(unsigned int, const double*);
 #endif
@@ -149,10 +165,6 @@ public:
             The average pair energy.
      */
     virtual double getEnergy();
-
-    Box& box;                           //!< A reference to the simulation box.
-    std::vector<Particle>& particles;   //!< A reference to the particle list.
-    CellList& cells;                    //!< A reference to the cell list.
 
 protected:
     unsigned int maxInteractions;       //!< The maximum number of interactions per particle.

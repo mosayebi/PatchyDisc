@@ -18,7 +18,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
-
+#include <csignal>
 #include "Box.h"
 #include "CellList.h"
 #include "Particle.h"
@@ -32,10 +32,11 @@ PatchyDisc::PatchyDisc(
     Box& box_,
     std::vector<Particle>& particles_,
     CellList& cells_,
+    Top& top_,
     unsigned int maxInteractions_,
     double interactionEnergy_,
     double interactionRange_) :
-    Model(box_, particles_, cells_, maxInteractions_, interactionEnergy_, interactionRange_)
+    Model(box_, particles_, cells_, top_, maxInteractions_, interactionEnergy_, interactionRange_)
 {
 #ifdef ISOTROPIC
     std::cerr << "[ERROR] PatchyDisc: Cannot be used with isotropic VMMC library!\n";
@@ -65,7 +66,7 @@ PatchyDisc::PatchyDisc(
 }
 
 double PatchyDisc::computePairEnergy(unsigned int particle1, const double* position1,
-    const double* orientation1, unsigned int particle2, const double* position2, const double* orientation2)
+    const double* orientation1, const unsigned int* status1, unsigned int particle2, const double* position2, const double* orientation2, const unsigned int* status2)
 {
     // Separation vector.
     std::vector<double> sep(2);
@@ -73,6 +74,8 @@ double PatchyDisc::computePairEnergy(unsigned int particle1, const double* posit
     // Calculate disc separation.
     sep[0] = position1[0] - position2[0];
     sep[1] = position1[1] - position2[1];
+    std::cout << "Index particle " << particle1 << " position " << position1[0] << " " << position1[1] << " and orientation " << orientation1[0] << " " << orientation1[1] << std::endl; 
+    std::cout << "Index particle " << particle1 << " position " << position2[0] << " " << position2[1] << " and orientation " << orientation2[0] << " " << orientation2[1] << std::endl;
 
     // Enforce minimum image.
     box.minimumImage(sep);
@@ -119,7 +122,7 @@ double PatchyDisc::computePairEnergy(unsigned int particle1, const double* posit
 
             // Patches interact.
             if (normSqd < squaredCutOffDistance)
-                energy -= interactionEnergy;
+                energy -= interactionEnergy*status1[i]*status2[j];
         }
     }
 
@@ -127,7 +130,7 @@ double PatchyDisc::computePairEnergy(unsigned int particle1, const double* posit
 }
 
 unsigned int PatchyDisc::computeInteractions(unsigned int particle,
-    const double* position, const double* orientation, unsigned int* interactions)
+    const double* position, const double* orientation, const unsigned int* status, unsigned int* interactions)
 {
     // Interaction counter.
     unsigned int nInteractions = 0;
@@ -148,9 +151,9 @@ unsigned int PatchyDisc::computeInteractions(unsigned int particle,
             if (neighbour != particle)
             {
                 // Calculate pair energy.
-                double energy = computePairEnergy(particle, position, orientation,
+                double energy = computePairEnergy(particle, position, orientation, status,
                                 neighbour, &particles[neighbour].position[0],
-                                &particles[neighbour].orientation[0]);
+                                &particles[neighbour].orientation[0], &particles[neighbour].patchstates[0]);
 
                 // Particles interact.
                 if (energy < 0)

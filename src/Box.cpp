@@ -17,7 +17,7 @@
 
 #include <cstdlib>
 #include <iostream>
-
+#include <csignal>
 #include "Box.h"
 
 Box::Box(const std::vector<double>& boxSize_) :

@@ -19,10 +19,11 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
-
+#include <csignal>
 #include "Box.h"
 #include "CellList.h"
 #include "Particle.h"
+#include "Top.h"
 #include "InputOutput.h"
 
 InputOutput::InputOutput() {}
@@ -115,19 +116,23 @@ void InputOutput::saveConfiguration(std::string fileName, Box& box,
     fclose(pFile);
 }
 
-void InputOutput::appendXyzTrajectory(std::string filename, long long int step, Box& box, const std::vector<Particle>& particles, bool clearFile, bool writeQuaternion)
+void InputOutput::appendXyzTrajectory(std::string filename, std::string filepatch, long long int step, Box& box, const std::vector<Particle>& particles, Top& top, bool clearFile, bool writeQuaternion)
 {
     // if writeQuaternion=true, the last two components of the quaternion (i.e. sin(theta/2) and cos(theta/2) are written in the oreintation fields) 
     FILE* pFile;
-
+    FILE* fFile;
+    int counter;
     // Wipe existing trajectory file.
     if (clearFile)
     {
         pFile = fopen(filename.c_str(), "w");
         fclose(pFile);
+     	fFile = fopen(filepatch.c_str(), "w");
+        fclose(fFile);
     }
 
     pFile = fopen(filename.c_str(), "a");
+    fFile = fopen(filepatch.c_str(), "a");
     fprintf(pFile, "%lu\n", particles.size());
     // Write step, and box size in the comment line.
 
@@ -141,6 +146,12 @@ void InputOutput::appendXyzTrajectory(std::string filename, long long int step, 
         fprintf(pFile, "%3d %8.6f %8.6f %8.6f\n",
             particles[i].type, particles[i].position[0], particles[i].position[1], (dimension == 3) ? particles[i].position[2] : 0);
 #else
+        counter=0;
+        for (unsigned int j=0;j<top.nPatches[particles[i].type];j++)
+        {
+             counter+=particles[i].patchstates[j];
+        }
+        fprintf(fFile," %d", counter);
         if (box.dimension == 2)
         {
             if (writeQuaternion)
@@ -162,10 +173,36 @@ void InputOutput::appendXyzTrajectory(std::string filename, long long int step, 
         }
 #endif
     }
-
+    fprintf(fFile,"\n");
+    fclose(fFile);
     fclose(pFile);
 }
 
+void InputOutput::appendPatchstate(std::string filename, const std::vector<Particle>& particles, Top& top, bool clearFile)
+{
+    FILE* pFile;
+    // Wipe existing trajectory file.
+    if (clearFile)
+    {
+     	pFile = fopen(filename.c_str(), "w");
+        fclose(pFile);
+    }
+
+    pFile = fopen(filename.c_str(), "a");
+    for (unsigned int i=0;i<particles.size();i++)
+    {
+#ifdef ISOTROPIC
+
+#else
+        for (unsigned int j=0;j<top.nPatches[particles[i].type];j++)
+        {
+            fprintf(pFile, " %d", particles[i].patchstates[j]);
+        }
+        fprintf(pFile,"\n");
+#endif
+    }
+    fclose(pFile);
+}
 
 void InputOutput::appendLog(std::string filename, long long int step, double energy, bool clearFile)
 {

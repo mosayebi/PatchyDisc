@@ -1,5 +1,5 @@
 #include "Top.h"
-
+#include <csignal>
 Top::Top()
 {
 }
@@ -14,8 +14,12 @@ void Top::setSize(unsigned int nTypes_)
     sigma.resize(nTypes, std::vector<double>(nTypes));
     sigma_p.resize(nTypes, std::vector<double>(nTypes));
     rcut.resize(nTypes, std::vector<double>(nTypes));
+    shift.resize(nTypes, std::vector<double>(nTypes));
 
     Ni.resize(nTypes);
     nPatches.resize(nTypes);
     patchAngles.resize(nTypes);
+    patchstates.resize(nTypes);
+    registerstatus.resize(nTypes);
+    
 }

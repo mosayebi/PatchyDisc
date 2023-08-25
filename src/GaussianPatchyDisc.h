@@ -61,7 +61,8 @@ public:
 
         \param orientation1
             The orientation vector of the first particle.
-
+        \param status1
+            The status vector of the first particle
         \param particle2
             The index of the second particle.
 
@@ -70,11 +71,12 @@ public:
 
         \param orientation2
             The orientation vector of the second particle.
-
+        \param status2
+            The status vector of the second particle
         \return
             The pair energy between particles 1 and 2.
      */
-    virtual double computePairEnergy(unsigned int, const double*, const double*, unsigned int, const double*, const double*);
+    virtual double computePairEnergy(unsigned int, const double*, const double*, const unsigned int*, unsigned int, const double*, const double*, const unsigned int*);
 
     //! Determine the interactions for a given particle.
     /*! \param particle

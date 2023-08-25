@@ -15,27 +15,33 @@
   along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 #include <iostream>
-
+#include <csignal>
 #include "Box.h"
 #include "CellList.h"
 #include "Model.h"
 #include "Particle.h"
 #include "SingleParticleMove.h"
+#include "Top.h"
 
 SingleParticleMove::SingleParticleMove(
     MersenneTwister& rng_,
     Model* model_,
+    double surf_interaction_,
     double maxTrialTranslation_,
     double maxTrialRotation_,
     double probTranslate_,
+    double probChange_,
     bool isIsotropic_) :
 
     rng(rng_),
     model(model_),
+    surf_interaction(surf_interaction_),
     maxTrialTranslation(maxTrialTranslation_),
     maxTrialRotation(maxTrialRotation_),
     probTranslate(probTranslate_),
+    probChange(probChange_),
     isIsotropic(isIsotropic_)
+
 {
     // Check dimensionality.
     if (model->box.dimension == 3) is3D = true;
@@ -73,14 +79,18 @@ void SingleParticleMove::step()
 
     // Propose a trial move.
     proposeMove();
-
     // Check whether move was accepted.
     if (accept())
     {
-        if (!moveParams.isRotation)
+        // Increment number of accepted moves.
+        nAccepts++;
+        if (moveParams.isChange)
         {
-            // Increment number of accepted moves.
-            nAccepts++;
+            nChanges++;
+        }
+        else if (!moveParams.isRotation)
+        {
+
 
             // Increment number of rotations.
             nRotations += moveParams.isRotation;
@@ -94,10 +104,11 @@ void SingleParticleMove::step()
                 model->particles[moveParams.seed].cell = oldCell;
                 model->cells.updateCell(newCell, model->particles[moveParams.seed], model->particles);
             }
-        }
-    }
-    else
-    {
+         } else {
+            // Increment number of rotations.
+            nRotations += moveParams.isRotation;
+         }
+    } else {
         // Revert particle to pre-move state.
         model->particles[moveParams.seed] = moveParams.preMoveParticle;
     }
@@ -118,59 +129,79 @@ unsigned long long SingleParticleMove::getRotations() const
     return nRotations;
 }
 
+unsigned long long SingleParticleMove::getChanges() const
+{
+    return nChanges;
+}
 void SingleParticleMove::reset()
 {
-    nAttempts = nAccepts = nRotations = 0;
+    nAttempts = nAccepts = nRotations = nChanges = 0;
 }
 
 void SingleParticleMove::proposeMove()
 {
     // Choose a seed particle.
     moveParams.seed = rng.integer(0, model->particles.size()-1);
-
+    double changenergy=0;
     // Choose a random point on the surface of the unit sphere/circle.
     for (unsigned int i=0;i<model->box.dimension;i++)
         moveParams.trialVector[i] = rng.normal();
-
-    // Normalise the trial vector.
-    double norm = computeNorm(moveParams.trialVector);
-    for (unsigned int i=0;i<model->box.dimension;i++)
-        moveParams.trialVector[i] /= norm;
-
-    // Choose the move type.
-    if (rng() < probTranslate)
-    {
-        // Translation.
-        moveParams.isRotation = false;
-
-        // Scale step-size to uniformly sample unit sphere/circle.
-        if (is3D) moveParams.stepSize = maxTrialTranslation*std::pow(rng(), 1.0/3.0);
-        else moveParams.stepSize = maxTrialTranslation*std::pow(rng(), 1.0/2.0);
-    }
-    else
-    {
-        // Rotation.
-        moveParams.isRotation = true;
-        moveParams.stepSize = maxTrialRotation*(2.0*rng()-1.0);
-    }
 
     // Calculate pre-move energy.
 #ifndef ISOTROPIC
     double initialEnergy = model->computeEnergy(moveParams.seed,
         &model->particles[moveParams.seed].position[0],
-        &model->particles[moveParams.seed].orientation[0]);
+        &model->particles[moveParams.seed].orientation[0],
+        &model->particles[moveParams.seed].patchstates[0]);
+    double initial_state=0;
+    for (unsigned int ii=0;ii< model->particles[moveParams.seed].patchstates.size();ii++) {
+        initial_state+=(model->particles[moveParams.seed].patchstates[ii]>0);
+    }
 #else
     double initialEnergy = model->computeEnergy(moveParams.seed,
         &model->particles[moveParams.seed].position[0]);
+    double intial_state=0;
 #endif
+
+    // Normalise the trial vector.
+    double norm = computeNorm(moveParams.trialVector);
+    for (unsigned int i=0;i<model->box.dimension;i++)
+        moveParams.trialVector[i] /= norm;
+     moveParams.isChange = false;
+     moveParams.isRotation = false;
+
+
+    // Choose the move type.
+    if (rng() < probChange)
+    {
+        // Change patch type
+        moveParams.isChange = true;
+        moveParams.stepSize = rng();
+    } else {
+        if (rng() < probTranslate)
+        {
+            // Translation.
+            // Scale step-size to uniformly sample unit sphere/circle.
+            if (is3D) moveParams.stepSize = maxTrialTranslation*std::pow(rng(), 1.0/3.0);
+            else moveParams.stepSize = maxTrialTranslation*std::pow(rng(), 1.0/2.0);
+        } else {
+            // Rotation.
+            moveParams.isRotation = true;
+            moveParams.stepSize = maxTrialRotation*(2.0*rng()-1.0);
+        }
+    }
 
     // Store initial coordinates/orientation.
     moveParams.preMoveParticle = model->particles[moveParams.seed];
 
     // Execute the move.
-    if (!moveParams.isRotation) // Translation.
+    if (moveParams.isChange)
+    {
+       changenergy = changepatch(model->particles[moveParams.seed].patchstates, model->top.registerstatus[model->particles[moveParams.seed].type], moveParams.stepSize);
+    } else if (!moveParams.isRotation) // Translation.
     {
         for (unsigned int i=0;i<model->box.dimension;i++)
+        {
             model->particles[moveParams.seed].position[i] += moveParams.stepSize*moveParams.trialVector[i];
 
         // Apply periodic boundary conditions.
@@ -178,9 +209,8 @@ void SingleParticleMove::proposeMove()
 
         // Work out new cell index.
         model->particles[moveParams.seed].cell = model->cells.getCell(model->particles[moveParams.seed]);
-    }
-    else                        // Rotation.
-    {
+        }
+    } else {
         std::vector<double> vec(model->box.dimension);
 
         // Calculate orientation rotation vector.
@@ -189,20 +219,29 @@ void SingleParticleMove::proposeMove()
 
         // Update orientation.
         for (unsigned int i=0;i<model->box.dimension;i++)
+        {
             model->particles[moveParams.seed].orientation[i] += vec[i];
+        }
     }
 
     // Calculate post-move energy.
 #ifndef ISOTROPIC
     double finalEnergy = model->computeEnergy(moveParams.seed,
         &model->particles[moveParams.seed].position[0],
-        &model->particles[moveParams.seed].orientation[0]);
+        &model->particles[moveParams.seed].orientation[0],
+        &model->particles[moveParams.seed].patchstates[0]);
+    double final_state=0;
+    for (unsigned int ii=0;ii< model->particles[moveParams.seed].patchstates.size();ii++) {
+        final_state+=(model->particles[moveParams.seed].patchstates[ii]>0);
+    }
+
 #else
     double finalEnergy = model->computeEnergy(moveParams.seed,
         &model->particles[moveParams.seed].position[0]);
+    double final_state=0;
 #endif
 
-    energyChange = finalEnergy - initialEnergy;
+    energyChange = (finalEnergy - initialEnergy) + changenergy + (initialEnergy<0)*surf_interaction;
 }
 
 bool SingleParticleMove::accept()
@@ -232,6 +271,30 @@ void SingleParticleMove::rotate2D(std::vector<double>& v1, std::vector<double>& 
 
     v2[0] = (v1[0]*c - v1[1]*s) - v1[0];
     v2[1] = (v1[0]*s + v1[1]*c) - v1[1];
+}
+
+double SingleParticleMove::changepatch(std::vector<unsigned int>& v1, std::vector<double>& v2, double probability)
+{
+    int numberofpatches = v1.size();
+    int patchtochange = (int)round(numberofpatches*rng()-0.5);
+    unsigned int ii = (unsigned int) round((v2.size()-1.5)*probability);
+    double previous=v2[v1[patchtochange]];
+    if (v1[patchtochange]>0)
+    {
+           previous=previous-v2[v1[patchtochange]-1];
+    }
+    if (ii>=v1[patchtochange])
+    {
+        ii++;
+    }
+    v1[patchtochange] = ii;
+    if (v1[patchtochange]>0)
+    {
+         previous=previous/(v2[v1[patchtochange]]-v2[v1[patchtochange]-1]);
+    } else {
+         previous=previous/(v2[v1[patchtochange]]);
+    }
+    return log(previous);
 }
 
 double SingleParticleMove::computeNorm(std::vector<double>& vec)

@@ -18,18 +18,19 @@
 #include <cstdlib>
 #include <iostream>
 #include <limits>
-
+#include <csignal>
 #include "Box.h"
 #include "CellList.h"
 #include "Model.h"
 #include "Particle.h"
-
+#include "Top.h"
 double INF = std::numeric_limits<double>::infinity();
 
 Model::Model(
     Box& box_,
     std::vector<Particle>& particles_,
     CellList& cells_,
+    Top& top_,
     unsigned int maxInteractions_,
     double interactionEnergy_,
     double interactionRange_) :
@@ -37,6 +38,7 @@ Model::Model(
     box(box_),
     particles(particles_),
     cells(cells_),
+    top(top_),
     maxInteractions(maxInteractions_),
     interactionEnergy(interactionEnergy_),
     interactionRange(interactionRange_)
@@ -46,7 +48,7 @@ Model::Model(
 }
 
 #ifndef ISOTROPIC
-double Model::computeEnergy(unsigned int particle, const double* position, const double* orientation)
+double Model::computeEnergy(unsigned int particle, const double* position, const double* orientation, const unsigned int* status)
 #else
 double Model::computeEnergy(unsigned int particle, const double* position)
 #endif
@@ -75,9 +77,9 @@ double Model::computeEnergy(unsigned int particle, const double* position)
             {
                 // Calculate model specific pair energy.
 #ifndef ISOTROPIC
-                energy += computePairEnergy(particle, position, orientation,
+                energy += computePairEnergy(particle, position, orientation, status,
                           neighbour, &particles[neighbour].position[0],
-                          &particles[neighbour].orientation[0]);
+                          &particles[neighbour].orientation[0], &particles[neighbour].patchstates[0]);
 #else
                 energy += computePairEnergy(particle, position,
                           neighbour, &particles[neighbour].position[0]);
@@ -93,8 +95,8 @@ double Model::computeEnergy(unsigned int particle, const double* position)
 }
 
 #ifndef ISOTROPIC
-double Model::computePairEnergy(unsigned int particle1, const double* position1, const double* orientation1,
-    unsigned int particle2, const double* position2, const double* orientation2)
+double Model::computePairEnergy(unsigned int particle1, const double* position1, const double* orientation1, const unsigned int* status1,
+    unsigned int particle2, const double* position2, const double* orientation2, const unsigned int* status2)
 #else
 double Model::computePairEnergy(unsigned int particle1,
     const double* position1, unsigned int particle2, const double* position2)
@@ -165,7 +167,7 @@ unsigned int Model::computeInteractions(unsigned int particle,
 }
 
 #ifndef ISOTROPIC
-void Model::applyPostMoveUpdates(unsigned int particle, const double* position, const double* orientation)
+void Model::applyPostMoveUpdates(unsigned int particle, const double* position, const double* orientation, const unsigned int* status)
 #else
 void Model::applyPostMoveUpdates(unsigned int particle, const double* position)
 #endif
@@ -175,7 +177,10 @@ void Model::applyPostMoveUpdates(unsigned int particle, const double* position)
     {
         particles[particle].position[i] = position[i];
 #ifndef ISOTROPIC
+        {
         particles[particle].orientation[i] = orientation[i];
+        particles[particle].patchstates[i] = status[i];
+        }
 #endif
     }
 
@@ -193,7 +198,7 @@ double Model::getEnergy()
 
     for (unsigned int i=0;i<particles.size();i++)
 #ifndef ISOTROPIC
-        energy += computeEnergy(i, &particles[i].position[0], &particles[i].orientation[0]);
+        energy += computeEnergy(i, &particles[i].position[0], &particles[i].orientation[0], &particles[i].patchstates[0]);
 #else
         energy += computeEnergy(i, &particles[i].position[0]);
 #endif

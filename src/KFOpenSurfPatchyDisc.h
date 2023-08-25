@@ -13,18 +13,23 @@
 
   You should have received a copy of the GNU General Public License
   along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+  Adapted from PatchyDisc.h
 */
 
-#ifndef _PATCHYDISC_H
-#define _PATCHYDISC_H
+#ifndef _KFOPENSURFPATCHYDISC_H
+#define _KFOPENSURFPATCHYDISC_H
 
 #include "Model.h"
 
-/*! \file PatchyDisc.h
+/*! \file GaussianPatchyDisc.h
 */
 
+// FORWARD DECLARATIONS
+class Top;
+
 //! Class defining the Patchy-Disc potential.
-class PatchyDisc : public Model
+class KFOpenSurfPatchyDisc : public Model
 {
 public:
     //! Constructor.
@@ -46,8 +51,7 @@ public:
         \param interactionRange_
             The potential cut-off distance (patch diameter).
      */
-    PatchyDisc(Box&, std::vector<Particle>&, CellList&, Top&, unsigned int, double, double);
-
+    KFOpenSurfPatchyDisc(Box&, std::vector<Particle>&, CellList&, Top&, unsigned int, double, double);
     //! Calculate the pair energy between two particles.
     /*! \param particle1
             The index of the first particle.
@@ -58,7 +62,7 @@ public:
         \param orientation1
             The orientation vector of the first particle.
         \param status1
-            The status vector of the patches in the first particle.
+            The status vector of the first particle
         \param particle2
             The index of the second particle.
 
@@ -68,12 +72,11 @@ public:
         \param orientation2
             The orientation vector of the second particle.
         \param status2
-            The status vector of the particles in the second particle.
-
+            The status vector of the second particle
         \return
             The pair energy between particles 1 and 2.
      */
-    double computePairEnergy(unsigned int, const double*, const double*, const unsigned int*, unsigned int, const double*, const double*, const unsigned int*);
+    virtual double computePairEnergy(unsigned int, const double*, const double*, const unsigned int*, unsigned int, const double*, const double*, const unsigned int*);
 
     //! Determine the interactions for a given particle.
     /*! \param particle
@@ -91,12 +94,26 @@ public:
         \return
             The number of interactions.
      */
-    unsigned int computeInteractions(unsigned int, const double*, const double*, const unsigned int*, unsigned int*);
+    unsigned int computeInteractions(unsigned int, const double*, const double*, unsigned int*);
 
-private:
-    double patchSeparation;         //!< The angle between patches in radians.
-    std::vector<double> cosTheta;   //!< Lookup table for cosine rotation matrix components.
-    std::vector<double> sinTheta;   //!< Lookup table for sine rotation matrix components.
+    Top& top;                           //!< A reference to the Top.
+
+//private:
+    //double patchSeparation;         //!< The angle between patches in radians.
+    //std::vector<std::vector<double>> cosTheta;   //!< Lookup table for cosine rotation matrix components.
+    //std::vector<std::vector<double>> sinTheta;   //!< Lookup table for sine rotation matrix components.
+    std::vector<unsigned int> idx2type;
+    //std::vector<std::vector<double>> cosPatchAngles; //this is to avoid calling expensive cos function
+    //std::vector<std::vector<double>> sinPatchAngles; //this is to avoid calling expensive sin function
+    std::vector<std::vector<double>> rcut_sq;
+    std::vector<std::vector<double>> lj_shift;
+    std::vector<std::vector<double>> twoSigmapSq;
+    std::vector<std::vector<double>> sigmaSq;
+
+    // std::vector<double> expTable;
+    // double dx = 5e-4;
+    // double max_x = 10;
+    // unsigned int tableSize = max_x / dx + 1.0;
 };
 
-#endif  /* _PATCHYDISC_H */
+#endif  /* _GAUSSIANPATCHYDISC_H */

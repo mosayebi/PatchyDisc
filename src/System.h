@@ -8,20 +8,15 @@
 #include "Model.h"
 #include "Particle.h"
 #include "Top.h"
-
+#include <csignal>
 #include "Utils.h"
 
 #include "SingleParticleMove.h"
 #include "VMMC.h"
 
-#include "GaussianPatchyDisc.h"
-#include "GaussianPatchyDiscHR.h"
-#include "GaussianPatchyDiscHRSW.h"
-
+#include "PotentialsList.h"
 #include <random>
 #include <vector>
-#include <csignal>
-
 
 #ifndef M_PI
     #define M_PI 3.1415926535897932384626433832795
@@ -69,7 +64,11 @@ unsigned int nTypes;
 Top top;
 std::vector<double> boxSizeVec (dimension);
 std::string init_conf="init_conf.xyz";
+std::string init_patch_conf="init_patch_conf.xvg";
 std::string trajectory = "trajectory.xyz";
+std::string patchfile = "patch_status.xvg";
+std::string last_patch_states_file="last_states.xvg";
+std::string last_patchfile = "last_patch.xvg";
 std::string last_conf = "last_conf.xyz";
 std::string init_mode = "from_init_conf";
 std::string log_file = "log.dat";
@@ -90,7 +89,6 @@ void getParamsFromInitConf(std::string fileName)
     std::ifstream dataFile;
     std::vector<double> dummy (dimension);
     unsigned int type, max_type=0;
-
     dataFile.open(fileName.c_str());
 
     // Check that the file is valid.
@@ -108,6 +106,37 @@ void getParamsFromInitConf(std::string fileName)
             for (unsigned int j=0;j<dimension;j++) dataFile >> dummy[j];
         }
         nTypes = max_type + 1;
+    }
+    else
+    {
+        std::cerr << "[ERROR] getParamsFromInitConf(): Invalid init_conf file ('"<< fileName <<"')!\n";
+        exit(EXIT_FAILURE);
+    }
+    // Close file stream.
+    dataFile.close();
+}
+
+void getParamsFromInitConf2(std::string fileName)
+{
+    std::ifstream dataFile;
+    std::vector<double> dummy (dimension);
+    unsigned int type;
+    dataFile.open(fileName.c_str());
+
+    // Check that the file is valid.
+    if (dataFile.good())
+    {
+        dataFile >> nParticles;
+        dataFile >> starting_step;
+        for (unsigned int j=0;j<dimension;j++) dataFile >> boxSizeVec[j];
+        // find out nTypes
+        for (unsigned int i=0;i<nParticles;i++)
+        {
+            dataFile >> type;
+            top.Ni[type]+=1;
+            for (unsigned int j=0;j<dimension;j++) dataFile >> dummy[j];
+            for (unsigned int j=0;j<dimension;j++) dataFile >> dummy[j];
+        }
     }
     else
     {
@@ -178,7 +207,36 @@ void loadInitialConfiguration(std::string fileName, Box& box, std::vector<Partic
     }
     else
     {
-        std::cerr << "[ERROR] getParamsFromInitConf(): Invalid init_conf file ('"<< fileName <<"')!\n";
+        std::cerr << "[ERROR] loadInitialConfiguration(): Invalid init_conf file ('"<< fileName <<"')!\n";
+        exit(EXIT_FAILURE);
+    }
+    // Close file stream.
+    dataFile.close();
+}
+
+// Maybe I should give as input TOP
+void loadInitialConfigurationPatches(std::string fileName, std::vector<Particle>& particles)
+{
+    std::ifstream dataFile;
+    std::vector<double> dummy (dimension);
+
+    dataFile.open(fileName.c_str());
+    // to read something dataFile >>
+    // Check that the file is valid.
+    if (dataFile.good())
+    {
+        for (unsigned int i=0;i<nParticles;i++)
+        {
+            for (unsigned int jj=0;jj<top.nPatches[particles[i].type] ;jj++)
+
+            // Set patchstatus TO CHECK
+            dataFile >> particles[i].patchstates[jj];
+            // Note that as long as the file has >= patchstatus reported the reading will go well and simulation start. be careful!
+        }
+    }
+    else
+    {
+     	std::cerr << "[ERROR] loadInitialConfigurationPatches(): Invalid init_conf file ('"<< fileName <<"')!\n";
         exit(EXIT_FAILURE);
     }
     // Close file stream.
@@ -206,6 +264,7 @@ void parseInitialisationBlock()
                 nParticles += top.Ni[t1];
                 //std::cout<< nParticles << std::endl;
             }
+            
             for (unsigned int k=0; k<dimension; k++)
             {
                 boxSizeVec[k] = inp[name][init_mode]["box"][k];
@@ -213,16 +272,27 @@ void parseInitialisationBlock()
         }
         else if (init_mode == "from_init_conf")
         {
-            init_conf.assign(inp[name][init_mode]["init_conf"]);
-            restart_step_counter = inp[name][init_mode]["restart_step_counter"];
-            getParamsFromInitConf(init_conf);
+            nTypes =inp[name][init_mode]["types"];
             top.setSize(nTypes);
-            // do not forget to initialise top.Ni when reading the init_conf.
+            for (unsigned int i=0;i<nTypes;i++){
+                unsigned int t1 = inp[name][init_mode]["particle_numbers"][i]["type"];
+                top.Ni[t1] = inp[name][init_mode]["particle_numbers"][i]["N"];
+                nParticles += top.Ni[t1];
+                //std::cout<< nParticles << std::endl;
+            }
+            
+            for (unsigned int k=0; k<dimension; k++)
+            {
+             	boxSizeVec[k] = inp[name][init_mode]["box"][k];
+            }
+            init_conf.assign(inp[name][init_mode]["init_conf"]);
+            init_patch_conf.assign(inp[name][init_mode]["init_patch_conf"]);
+            restart_step_counter = inp[name][init_mode]["restart_step_counter"];
         }
     }
     else
     {
-        std::cerr << "[ERROR] Initialisation mode is not defined! ("<<init_mode<<")\n";
+        std::cerr << "[ERROR] Initialisation mode is not defined!\n";
         exit(EXIT_FAILURE);
     }
 }
@@ -241,6 +311,15 @@ void parseTopologyBlock()
             double dummy = inp[name]["patches"][i]["angles"][j];
             top.patchAngles[t1].push_back(M_PI * (dummy / 180.0));
         }
+        top.patchstates[t1] = inp[name]["patches"][i]["nStates"];
+        double dummy=0;
+        for (unsigned int j=0;j<top.patchstates[t1];j++){
+            double dummy2 = inp[name]["patches"][i]["probability"][j];
+            dummy+=dummy2;
+            top.registerstatus[t1].push_back(dummy);
+        }
+        // force a limited amount of states by putting the last element of registerstatus to a number equal to 1
+        top.registerstatus[t1].push_back(1.0);
     }
     //init pair_coeff
     unsigned int counter = 0;
@@ -251,8 +330,9 @@ void parseTopologyBlock()
             top.epsilon[t1][t2] = inp[name]["pair_coeff"][counter]["epsilon"];
             top.delta[t1][t2] = inp[name]["pair_coeff"][counter]["delta"];
             top.sigma[t1][t2] = inp[name]["pair_coeff"][counter]["sigma"];
-            top.sigma_p[t1][t2] = inp[name]["pair_coeff"][counter]["sigma_p"];
+            top.sigma_p[t1][t2] = inp[name]["pair_coeff"][counter]["sigma_p"]; // Sigma p in case of the KFOpenSurfPatchyDisc it is the maximum angle for the interaction
             top.rcut[t1][t2] = inp[name]["pair_coeff"][counter]["rcut"];
+            top.shift[t1][t2] = inp[name]["pair_coeff"][counter]["shift"];
             counter += 1;
             if (interactionEnergy<top.epsilon[t1][t2]) interactionEnergy=top.epsilon[t1][t2];
             if (interactionRange<top.rcut[t1][t2]) interactionRange=top.rcut[t1][t2];
@@ -268,7 +348,7 @@ void parseSimulationParamBlock()
     if (inp[name].contains("trajectory")) trajectory.assign(inp[name]["trajectory"]);
     if (inp[name].contains("log_file")) log_file.assign(inp[name]["log_file"]);
     if (inp[name].contains("seed")) seed = inp[name]["seed"];
-    if (inp.contains("interaction")) interaction.assign(inp[name]["interaction"]);
+    if (inp[name].contains("interaction")) interaction.assign(inp[name]["interaction"]);
     sweeps = inp[name]["sweeps"];
 }
 

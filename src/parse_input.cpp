@@ -4,8 +4,8 @@
 #include <iostream>
 #include <string>
 #include "parse_input.h"
-
-
+#include <signal.h>
+#include <csignal>
 #include <nlohmann/json.hpp>
 #include <fstream>
 

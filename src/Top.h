@@ -22,6 +22,8 @@ class Top
     std::vector<unsigned int> Ni;
 
     std::vector<unsigned int> nPatches;
+    std::vector<unsigned int> patchstates;
+    std::vector<std::vector<double>> registerstatus;
     std::vector<std::vector<double>> patchAngles;
 
     std::vector<std::vector<double>> epsilon;
@@ -29,6 +31,7 @@ class Top
     std::vector<std::vector<double>> sigma;
     std::vector<std::vector<double>> sigma_p;
     std::vector<std::vector<double>> rcut;
+    std::vector<std::vector<double>> shift;
 };
 
 #endif  /* _TOP_H */

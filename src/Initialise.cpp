@@ -18,7 +18,7 @@
 #include <cstdlib>
 #include <iostream>
 //#include <numeric>
-
+#include <csignal>
 
 #include "Box.h"
 #include "CellList.h"
@@ -58,7 +58,6 @@ void Initialise::random(Top& top, std::vector<Particle>& particles, CellList& ce
         //std::cout << k <<": "<< top.Ni[k]<<std::endl;
         for (unsigned i=0;i<top.Ni[k];i++)
         {
-
             // Whether particle overlaps.
             bool isOverlap = true;
 
@@ -70,7 +69,19 @@ void Initialise::random(Top& top, std::vector<Particle>& particles, CellList& ce
 
             // Set particle type.
             particles[idx].type = k;
-
+            for (unsigned int ii=0; ii<top.nPatches[k]; ii++)
+            {
+                bool flag_is_less = true;
+                unsigned int jj = 0;
+                double probability=rng();
+                particles[idx].patchstates.push_back(0);
+                flag_is_less =(probability>top.registerstatus[k][jj]);
+                /*while (flag_is_less) {
+                    jj++;
+                    flag_is_less =(probability>top.registerstatus[k][jj]);
+                    particles[idx].patchstates[ii]=jj;
+                }*/
+            }
             // Keep trying to insert particle until there is no overlap.
             while (isOverlap)
             {
@@ -97,7 +108,7 @@ void Initialise::random(Top& top, std::vector<Particle>& particles, CellList& ce
                     vec[j] /= norm;
 
                 particles[idx].orientation = vec;
-
+                // for each patch generate a random numver representing the status
                 // Calculate the particle's cell index.
                 particles[idx].cell = cells.getCell(particles[idx]);
 
@@ -136,6 +147,106 @@ void Initialise::random(Top& top, std::vector<Particle>& particles, CellList& ce
         }
     }
 std::cout<< "# Random starting configuration is generated after "<< nTrials <<" insertion trials."<< std::endl;
+}
+
+
+void Initialise::previous(Top& top, std::vector<Particle>& particles, CellList& cells, Box& box, MersenneTwister& rng, bool isSpherocylinder)
+{
+    std::cout<< "# Geneating random starting configuration..."<< std::endl;
+
+    if (isSpherocylinder && (box.dimension != 3)){
+        std::cerr << "[ERROR] Initialise: Spherocylindrical boundary only valid for three dimensional simulation box!\n";
+        exit(EXIT_FAILURE);
+    }
+
+    // Copy box dimensions.
+    boxSize = box.boxSize;
+    unsigned int sum = 0;
+    sum = std::accumulate(top.Ni.begin(), top.Ni.end(), 0);
+
+    if (sum != particles.size()){
+        std::cerr << "[ERROR] Initialise: Invalid number of particles! ("<< particles.size() <<" != "<< sum << ")\n";
+        exit(EXIT_FAILURE);
+    }
+
+    unsigned int idx=0;
+    // Current number of attempted particle insertions.
+    unsigned int nTrials = 0;
+    for (unsigned int k=0;k<top.Ni.size();k++)
+    {
+     	//std::cout << k <<": "<< top.Ni[k]<<std::endl;
+        for (unsigned i=0;i<top.Ni[k];i++)
+        {
+            // Whether particle overlaps.
+            bool isOverlap = true;
+
+            // Temporary vector.
+            std::vector<double> vec(box.dimension);
+
+            // Set particle index.
+            particles[idx].index = idx;
+
+            // Set particle type.
+            particles[idx].type = k;
+            // Initialise patches
+            for (unsigned int ii=0; ii<top.nPatches[k]; ii++)
+            {
+             	bool flag_is_less = true;
+                unsigned int jj = 0;
+                double probability=rng();
+                particles[idx].patchstates.push_back(0);
+                flag_is_less =(probability>top.registerstatus[k][jj]);
+                /*while (flag_is_less) {
+                    jj++;
+                    flag_is_less =(probability>top.registerstatus[k][jj]);
+                    particles[idx].patchstates[ii]=jj;
+                }*/
+            }
+            // Keep trying to insert particle until there is no overlap.
+            while (isOverlap)
+            {
+             	nTrials++;
+
+                // Generate a random position.
+                for (unsigned int j=0;j<box.dimension;j++)
+                    vec[j] = rng()*box.boxSize[j];
+
+                particles[idx].position = vec;
+
+                // Generate a random orientation.
+                for (unsigned int j=0;j<box.dimension;j++)
+                    vec[j] = rng.normal();
+
+                // Calculate vector norm.
+                double norm = 0;
+                for (unsigned int j=0;j<box.dimension;j++)
+                    norm += vec[j]*vec[j];
+                norm = sqrt(norm);
+
+                // Convert orientation to a unit vector.
+                for (unsigned int j=0;j<box.dimension;j++)
+                    vec[j] /= norm;
+
+                particles[idx].orientation = vec;
+                // for each patch generate a random numver representing the status
+                // Calculate the particle's cell index.
+                particles[idx].cell = cells.getCell(particles[idx]);
+
+                // Check trial limit isn't exceeded.
+                if (nTrials == MAX_TRIALS)
+                {
+                    std::cerr << "[ERROR] Initialise: Maximum number of trial insertions reached. Only "<< idx <<" particles could be added.\n";
+                    exit(EXIT_FAILURE);
+                }
+            isOverlap = false;
+            }
+
+            // Update cell list.
+            cells.initCell(particles[idx].cell, particles[idx]);
+            idx += 1;
+        }
+    }
+std::cout<< "# Previous starting configuration is generated";
 }
 
 #ifndef ISOTROPIC

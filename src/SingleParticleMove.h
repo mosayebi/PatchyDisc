@@ -38,6 +38,7 @@ struct MoveParams
 {
     unsigned int seed;                          //!< Index of the seed particle.
     bool isRotation;                            //!< Whether the move is a rotation.
+    bool isChange;                              //!< Whether the move is a change of state.
     double stepSize;                            //!< The magnitude of the trial move.
     std::vector<double> trialVector;            //!< Vector for trial move.
     Particle preMoveParticle;                   //!< Particle state before the trial move.
@@ -49,20 +50,18 @@ public:
     //! Constructor.
     /*! \param model_
             A pointer to the model object.
-
         \param maxTrialTranslation_
             The maximum trial translation (in units of the reference particle diameter).
-
         \param maxTrialRotation_
             The maximum trial rotation.
-
         \param probTranslate_
             The probability of performing a translation move (versus a rotation).
-
+        \parm probChange
+            The probability of changing the status of a patch (versus rotation and translation
         \param isIsotropic_
             Whether the potential is isotropic.
      */
-    SingleParticleMove(MersenneTwister&, Model*, double, double, double, bool);
+    SingleParticleMove(MersenneTwister&, Model*, double, double, double, double, double, bool);
 
     //! Overloaded ++ operator. Perform a single step.
     void operator ++ (const int);
@@ -97,6 +96,12 @@ public:
      */
     unsigned long long getRotations() const;
 
+     //! Get the number of accepted changes move
+    /*! \return
+            The number of accepted changes moves.
+    */
+    unsigned long long getChanges() const;
+
     //! Reset statistics.
     void reset();
 
@@ -104,14 +109,16 @@ public:
 
 private:
     MoveParams moveParams;                      //!< Parameters for the trial move.
-    Model* model;                               //!< A pointer to the model object.
+    Model* model;                               //!< A pointer to the model object
+    double surf_interaction;                    //!< The interaction with the surface
     unsigned long long nAttempts;               //!< Number of attempted moves.
     unsigned long long nAccepts;                //!< Number of accepted moves.
     unsigned long long nRotations;              //!< Number of accepted rotations.
-
+    unsigned long long nChanges;                //!< Number of accepted changes
     double maxTrialTranslation;                 //!< The maximum trial translation (in units of the reference diameter).
     double maxTrialRotation;                    //!< The maximum trial rotation.
     double probTranslate;                       //!< The relative probability of translational moves (vs rotations).
+    double probChange;                          //!< The relative probability of Changes vs (movement)
     bool is3D;                                  //!< Whether the simulation is three-dimensional.
     bool isIsotropic;                           //!< Whether the potential is isotropic.
     double energyChange;                        //!< Energy change resulting from trial move.
@@ -149,10 +156,19 @@ private:
      */
     void rotate2D(std::vector<double>&, std::vector<double>&, double);
 
+    //compute a possible new state for a patch and compute free energy of change
+    /*! \param v1
+            The id of the patches to change
+        \param v2
+            The proability register for each state
+        \param state_probability to switch to vector in case of multiple possible states to change ad same time
+            The probability to obtain a close state
+    */
+    double changepatch(std::vector<unsigned int>&, std::vector<double>&, double);
+
     //! Compute the norm of a vector.
     /*! \param vec
-            A reference to the vector
-
+            A vector to normalize
         \return
             The norm of the vector.
      */

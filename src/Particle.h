@@ -35,7 +35,8 @@ public:
     unsigned int type;                  //!< Particle type.
     std::vector<double> position;       //!< The x,y,z coordinates of the particle.
     std::vector<double> orientation;    //!< The orientation of the particle (unit vector).
-
+    std::vector<unsigned int> patchstates;    //!< The status of patches
+    std::vector<double> registerstatus; //!< The register containing the probabilities of all the status.
     unsigned int cell;                  //!< The index of the cell in which the particle is located.
     unsigned int posCell;               //!< Position of particle in the corresponding cell list.
 };

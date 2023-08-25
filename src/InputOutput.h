@@ -25,7 +25,7 @@
 */
 
 // FORWARD DECLARATIONS
-
+class  Top;
 class  Box;
 class  CellList;
 struct Particle;
@@ -79,9 +79,11 @@ public:
         \param clearFile
             Whether to clear the trajectory file before writing.
      */
-    void appendXyzTrajectory(std::string, long long int, Box&, const std::vector<Particle>&, bool, bool);
+    void appendXyzTrajectory(std::string, std::string, long long int, Box&, const std::vector<Particle>&, Top&, bool, bool);
 
     void appendLog(std::string, long long int, double, bool);
+
+    void appendPatchstate(std::string, const std::vector<Particle>&, Top&, bool);
 
     //! Create a VMD TcL script to set the particle view and draw a bounding box.
     /*! \param boxSize

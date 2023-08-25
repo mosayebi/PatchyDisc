@@ -1,5 +1,6 @@
 #include <cmath>
 #include <iostream>
+#include <csignal>
 
 #include "Utils.h"
 

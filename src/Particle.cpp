@@ -16,7 +16,7 @@
 */
 
 #include "Particle.h"
-
+#include <csignal>
 Particle::Particle()
 {
 }
